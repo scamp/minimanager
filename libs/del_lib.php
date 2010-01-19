@@ -79,7 +79,7 @@ function del_acc($acc_id)
   $sqlr->connect($realm_db['addr'], $realm_db['user'], $realm_db['pass'], $realm_db['name']);
 
   if ($server_type) {
-	  $query = $sqlr->query('SELECT gmlevel FROM account WHERE id ='.$acc_id.'');
+	  $query = $sqlr->query('SELECT gmlevel FROM account_access WHERE id ='.$acc_id.'');
 	  
   } else {
 	  $query = $sqlr->query('SELECT gmlevel, active_realm_id FROM account WHERE id ='.$acc_id.'');
@@ -90,7 +90,11 @@ function del_acc($acc_id)
 
   if ( ($user_lvl > $gmlevel)||($acc_id == $user_id) )
   {
+   if ($server_type) {
+    if ($sqlr->result($query, 0, 'online'));
+   } else {
     if ($sqlr->result($query, 0, 'active_realm_id'));
+   }
     else
     {
       foreach ($characters_db as $db)
@@ -124,6 +128,9 @@ function del_acc($acc_id)
       }
       foreach ($tab_del_user_realmd as $value)
         $sqlr->query('DELETE FROM '.$value[0].' WHERE '.$value[1].' = '.$acc_id.'');
+  if ($server_type) {
+    $sqlr->query('DELETE FROM account_access WHERE id = '.$acc_id.'');
+  }
       if ($sqlr->affected_rows())
         return array(true, $del_char);
     }

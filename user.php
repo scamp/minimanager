@@ -1194,7 +1194,11 @@ function doedit_user()
   if (!valid_alphabetic($username))
     redirect("user.php?action=edit_user&error=9&id=$id");
   //restricting accsess to lower gmlvl
-  $result = $sqlr->query("SELECT gmlevel,username FROM account WHERE id = '$id'");
+  if ($server_type) {
+    $result = $sqlr->query("SELECT username FROM account LEFT JOIN account_access ON account.id=account_access.id WHERE account.id = '$id'");
+  } else {
+    $result = $sqlr->query("SELECT gmlevel,username FROM account WHERE id = '$id'");
+  }
   if (($user_lvl <= $sqlr->result($result, 0, 'gmlevel')) && ($user_name != $sqlr->result($result, 0, 'username')))
     redirect("user.php?error=14");
   if (!$banned)
@@ -1206,7 +1210,9 @@ function doedit_user()
       $sqlr->query("INSERT INTO account_banned (id, bandate, unbandate, bannedby, banreason, active)
                  VALUES ($id, ".time().",".(time()+(365*24*3600)).",'$user_name','$banreason', 1)");
   }
-  $sqlr->query("UPDATE account SET email='$mail', $user_pass_change v=0,s=0,failed_logins='$failed',locked='$locked',gmlevel='$gmlevel',expansion='$expansion' WHERE id=$id");
+    $sqlr->query("UPDATE account SET email='$mail', $user_pass_change v=0,s=0,failed_logins='$failed',locked='$locked',expansion='$expansion' WHERE id='$id'");
+  if ($server_type)
+    $sqlr->query("UPDATE account_access SET gmlevel='$gmlevel' WHERE id='$id'");
   if (doupdate_referral($referredby, $id) || $sqlr->affected_rows())
     redirect("user.php?action=edit_user&error=13&id=$id");
   else

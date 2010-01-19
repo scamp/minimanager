@@ -108,9 +108,12 @@ function doregister(){
       $expansion = (isset($_POST['expansion'])) ? $sql->quote_smart($_POST['expansion']) : 0;
         else $expansion = $defaultoption;
 
-    if ($server_type)
+    if ($server_type) {
       $result = $sql->query("INSERT INTO account (username,sha_pass_hash,email, joindate,last_ip,failed_logins,locked,last_login,expansion)
-			  VALUES (UPPER('$user_name'),'$pass','$mail',now(),'$last_ip',0,$create_acc_locked,NULL,$expansion)");
+              VALUES (UPPER('$user_name'),'$pass','$mail',now(),'$last_ip',0,$create_acc_locked,NULL,$expansion)");
+      $query_result = mysql_fetch_assoc($sql->query("SELECT id FROM account WHERE username = '$user_name'"));
+          $result = $sql->query("INSERT INTO account_access (`id`,`gmlevel`) VALUES ('".$query_result['id']."','0')");	
+        }  
     else
       $result = $sql->query("INSERT INTO account (username,sha_pass_hash,gmlevel,email, joindate,last_ip,failed_logins,locked,last_login,active_realm_id,expansion)
               VALUES (UPPER('$user_name'),'$pass',0,'$mail',now(),'$last_ip',0,$create_acc_locked,NULL,0,$expansion)");
