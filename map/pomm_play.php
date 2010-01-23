@@ -13,8 +13,8 @@
     2006-2009 Modified by killdozer.
 */
 
-require_once("pomm_conf.php");
-require_once("func.php");
+require_once 'pomm_conf.php';
+require_once 'func.php';
 
 if (file_exists("map_".$lang.".php") && file_exists("zone_names_".$lang.".php"))
   require_once("map_".$lang.".php");
