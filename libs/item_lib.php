@@ -96,11 +96,12 @@ function get_item_icon($itemid, &$sqlm=0, &$sqlw=0)
 
   if ($displayid)
   {
-    $result = $sqlm->query("SELECT `field_5` FROM `dbc_itemdisplayinfo` WHERE `id`=$displayid LIMIT 1");
+    $result = $sqlm->query("SELECT `name` FROM `dbc_itemdisplayinfo` WHERE `id`=$displayid LIMIT 1");
 
     if($result)
     {
-      $item = $sqlm->result($result, 0);
+      $item_uppercase = $sqlm->result($result, 0);
+      $item = strtolower($item_uppercase);
 
       if ($item)
       {
@@ -167,14 +168,15 @@ function get_item_icon($itemid, &$sqlm=0, &$sqlw=0)
       $temp_string4 = substr($temp_string3, 1, strlen($temp_string3) - 2);
       $icon_name = $temp_string4;
 
-      $item = $icon_name;
+      $item_uppercase = $icon_name;
+	  $item = strtolower($item_uppercase);
     }
 
     if (file_exists(''.$item_icons.'/'.$item.'.jpg'))
     {
       if (filesize(''.$item_icons.'/'.$item.'.jpg') > 349)
       {
-        $sqlm->query('REPLACE INTO dbc_itemdisplayinfo (id, field_5) VALUES (\''.$displayid.'\', \''.$item.'\')');
+        $sqlm->query('REPLACE INTO dbc_itemdisplayinfo (id, name) VALUES (\''.$displayid.'\', \''.$item.'\')');
         return ''.$item_icons.'/'.$item.'.jpg';
       }
       else
@@ -214,7 +216,7 @@ function get_item_icon($itemid, &$sqlm=0, &$sqlw=0)
     {
       if (filesize(''.$item_icons.'/'.$item.'.jpg') > 349)
       {
-        $sqlm->query('REPLACE INTO dbc_itemdisplayinfo (id, field_5) VALUES (\''.$displayid.'\', \''.$item.'\')');
+        $sqlm->query('REPLACE INTO dbc_itemdisplayinfo (id, name) VALUES (\''.$displayid.'\', \''.$item.'\')');
         return ''.$item_icons.'/'.$item.'.jpg';
       }
       else
@@ -235,7 +237,7 @@ function get_item_icon($itemid, &$sqlm=0, &$sqlw=0)
     {
       if (filesize(''.$item_icons.'/'.$item.'.jpg') > 349)
       {
-        $sqlm->query('REPLACE INTO dbc_itemdisplayinfo (id, field_5) VALUES (\''.$displayid.'\', \''.$item.'\')');
+        $sqlm->query('REPLACE INTO dbc_itemdisplayinfo (id, name) VALUES (\''.$displayid.'\', \''.$item.'\')');
         return ''.$item_icons.'/'.$item.'.jpg';
       }
       else
