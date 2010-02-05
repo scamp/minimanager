@@ -389,6 +389,7 @@ function lang_char()
     'ranged_ap' => 'Ranged Power',
     'expertise' => 'Expertise',
     'resilience' => 'Resilience',
+    'defense' => 'Defense',
     'block' => 'Block',
     'dodge' => 'Dodge',
     'parry' => 'Parry',
@@ -646,7 +647,7 @@ $lang_item = array(
   'socket_blue' => 'Blue Socket',
   'rating_by' => 'Rating by',
   'improves' => 'Improves',
-  'DEFENCE_RATING' => 'Defence',
+  'DEFENSE_RATING' => 'Defense',
   'DODGE_RATING' => 'Dodge',
   'PARRY_RATING' => 'Parry',
   'SHIELD_BLOCK_RATING' => 'Shield Block',
@@ -833,7 +834,7 @@ function lang_motd()
   $lang_motd = array
   (
     'post_motd' => 'Post Message of the Day',
-    'post_rules' => 'Notice: the length is limited to 255 chars.<br />HTML tags are usable.',
+    'post_rules' => '<b>Notice</b>: HTML tags are usable.',
     'err_max_len' => 'Max. length limit Exceeded',
     'add_motd' => 'Add Message of the Day',
     'edit_motd' => 'Edit Message of the Day',
@@ -1062,10 +1063,12 @@ function lang_stat()
     'max_uptime' => 'Maximum Server Uptime',
     'uptime_prec' => ' Uptime percentage since first run',
     'unique_ip' => 'Unique IPs last 24 Hour',
+    'unique_ip2' => 'Unique IPs last 48 Hour',
+    'unique_ipWeek' => 'Unique IPs last 7 Days',
     'on_statistics' => 'Online Statistics',
     'max_players' => 'Max players online since',
-    'max_ever' => 'first run',
-    'max_restart' => 'last restart',
+    'max_ever' => 'First run',
+    'max_restart' => 'Last restart',
   );
   return $lang_stat;
 }
