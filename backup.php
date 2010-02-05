@@ -224,13 +224,8 @@ function backup_step2()
 //##############################################################################################
 function dobackup()
 {
-  global $lang_backup,$backup_dir, $tables_backup_realmd, $tables_backup_characters, $$tables_backup_characters_trinity, $output, $realm_db,
-    $characters_db, $realm_id, $tab_backup_user_realmd, $tab_backup_user_characters, $tab_backup_user_characters_trinity;
-  if ($server_type)
-  {
-    $tab_backup_user_characters = $tab_backup_user_characters_trinity;
-    $tables_backup_characters = $$tables_backup_characters_trinity;
-  }
+  global $lang_backup,$backup_dir, $tables_backup_realmd, $tables_backup_characters, $output, $realm_db,
+    $characters_db, $realm_id, $tab_backup_user_realmd, $tab_backup_user_characters;
 
   if ( empty($_GET['backup_action']) || empty($_GET['backup_from_to']) )
   {
@@ -620,9 +615,6 @@ function dobackup()
 //########################################################################################################################
 // MAIN
 //########################################################################################################################
-if ($server_type)
-  $tables_backup_characters = $tables_backup_characters_trinity;
-
 $err = (isset($_GET['error'])) ? $_GET['error'] : NULL;
 
 $output .= "

@@ -16,10 +16,9 @@ function browse_users(&$sqlr, &$sqlc)
     $mmfpm_db,
     $action_permission, $user_lvl, $user_name,
     $itemperpage, $showcountryflag, $expansion_select,
-    $gm_level_arr, $server_type;
+    $gm_level_arr;
 
-  $active_realm_id_pq = ($server_type) ? "0 as active_realm_id" : 
-	  			                             "active_realm_id";
+  $active_realm_id_pq = "active_realm_id";
 
   $sqlm = new SQL;
   $sqlm->connect($mmfpm_db['addr'], $mmfpm_db['user'], $mmfpm_db['pass'], $mmfpm_db['name']);
@@ -41,80 +40,7 @@ function browse_users(&$sqlr, &$sqlc)
   $search_by = '';
   $search_value = '';
 
- 
-  if ($server_type == 1) { //If TrinityCore Server Type
-   $order_by2 = $order_by;
-    if ($order_by == 'gmlevel') { 
-       $order_by = 'account_access.gmlevel';
-    }
-    elseif ($order_by == 'active_realm_id') {
-       $order_by = 'account.online';
-    }
-    else {
-       $order_by = 'account.'.$order_by2;
-       unset($order_by2);
-    } 
-     // if we have a search request, if not we just return everything
-  if(isset($_GET['search_value']) && isset($_GET['search_by']))
-  {
-    // injection prevention
-    $search_value = $sqlr->quote_smart($_GET['search_value']);
-    $search_by = $sqlr->quote_smart($_GET['search_by']);
-    $search_menu = array('username', 'id', 'gmlevel', 'greater_gmlevel', 'email', 'joindate', 'last_ip', 'failed_logins', 'last_login', 'active_realm_id', 'banned', 'locked', 'expansion');
-    
-    if (in_array($search_by, $search_menu));
-    else $search_by = 'username';
-    unset($search_menu);
-
-    if ($search_by == 'active_realm_id') { $search_by = 'online'; }
-    // special search cases
-    // developer note: 'if else' is always faster then 'switch case'
-    if ($search_by === 'gmlevel')
-    {
-      $sql_query = 'SELECT * FROM account LEFT JOIN account_access ON account.id=account_access.id WHERE account_access.gmlevel = '.$search_value.' ORDER BY '.$order_by.' '.$order_dir.' LIMIT '.$start.', '.$itemperpage.'';
-      $query_1 = $sqlr->query('SELECT count(*) FROM account_access WHERE gmlevel = "%'.$search_value.'%"');
-    }
-    elseif ($search_by === 'greater_gmlevel')
-    {
-      $sql_query = 'SELECT * FROM account LEFT JOIN account_access ON account.id=account_access.id WHERE account_access.gmlevel < '.$search_value.' ORDER BY '.$order_by.' '.$order_dir.' LIMIT '.$start.', '.$itemperpage.'';
-      $query_1 = $sqlr->query('SELECT count(*) FROM account_access WHERE gmlevel < "%'.$search_value.'%"');
-    }
-    elseif ($search_by === 'banned')
-    {
-      $sql_query = 'SELECT * FROM account LEFT JOIN account_access ON account.id=account_access.id WHERE account.id = 0 ';
-      $count_query = 'SELECT count(*) FROM account WHERE id = 0 ';
-      $que = $sqlr->query('SELECT id FROM account_banned');
-      while ($banned = $sqlr->fetch_assoc($que))
-      {
-        $sql_query .= 'OR id = '.$banned['id'].'';
-        $count_query .= 'OR id = '.$banned['id'].'';
-      }
-      $query_1 = $sqlr->query($count_query);
-      unset($count_query);
-    }
-    elseif ($search_by === 'failed_logins')
-    {
-      $sql_query = 'SELECT * FROM account LEFT JOIN account_access ON account.id=account_access.id WHERE failed_logins > '.$search_value.' ORDER BY '.$order_by.' '.$order_dir.' LIMIT '.$start.', '.$itemperpage.'';
-      $query_1 = $sqlr->query('SELECT count(*) FROM account WHERE failed_logins > '.$search_value.'');
-    }
-    else
-    {
-      // default search case
-      $sql_query = 'SELECT * FROM account LEFT JOIN account_access ON account.id=account_access.id WHERE '.$search_by.' LIKE "%'.$search_value.'%" ORDER BY '.$order_by.' '.$order_dir.' LIMIT '.$start.', '.$itemperpage.'';
-      $query_1 = $sqlr->query('SELECT count(*) FROM account LEFT JOIN account_access ON account.id=account_access.id WHERE '.$search_by.' LIKE "%'.$search_value.'%"');
-    }
-    $query = $sqlr->query($sql_query);
-  }
-  else
-  {
-    // get total number of items
-    $query_1 = $sqlr->query('SELECT count(*) FROM account');
-    $query = $sqlr->query('SELECT * FROM account LEFT JOIN account_access ON account.id=account_access.id ORDER BY '.$order_by.' '.$order_dir.' LIMIT '.$start.', '.$itemperpage.'');
-  }
- 
-  }
-  else { //If MaNGOS Server Type
-     // if we have a search request, if not we just return everything
+    // if we have a search request, if not we just return everything
   if(isset($_GET['search_value']) && isset($_GET['search_by']))
   {
     // injection prevention
@@ -168,7 +94,6 @@ function browse_users(&$sqlr, &$sqlc)
     $query_1 = $sqlr->query('SELECT count(*) FROM account');
     $query = $sqlr->query('SELECT *
       FROM account ORDER BY '.$order_by.' '.$order_dir.' LIMIT '.$start.', '.$itemperpage.'');
-  }
   }
   // this is for multipage support
   $all_record = $sqlr->result($query_1,0);
@@ -331,13 +256,9 @@ function browse_users(&$sqlr, &$sqlc)
       $output .= '
                   <td>'.(($data['failed_logins']) ? $data['failed_logins'] : '-').'</td>
                   <td>'.(($data['locked']) ? $lang_global['yes_low'] : '-').'</td>
-                  <td class="small">'.$data['last_login'].'</td>';
-                  if ($server_type == 1) {
-                     $output .= '<td>'.(($data['online']) ? '<img src="img/up.gif" alt="" />' : '-').'</td>';
-                  }
-                  else {
-                     $output .= '<td>'.(($data['active_realm_id']) ? '<img src="img/up.gif" alt="" />' : '-').'</td>';
-                  }
+                  <td class="small">'.$data['last_login'].'</td>
+                  <td>'.(($data['active_realm_id']) ? '<img src="img/up.gif" alt="" />' : '-').'</td>';
+
       if ($showcountryflag)
       {
         $country = misc_get_country_by_ip($data['last_ip'], $sqlm);
@@ -474,11 +395,9 @@ function del_user()
 //#####################################################################################################
 function dodel_user()
 {
-  global $lang_global, $lang_user, $output, $realm_db, $characters_db, $realm_id, $user_lvl, $server_type,
-    $tab_del_user_characters, $tab_del_user_characters_trinity, $tab_del_user_realmd, $action_permission;
+  global $lang_global, $lang_user, $output, $realm_db, $characters_db, $realm_id, $user_lvl,
+    $tab_del_user_characters, $tab_del_user_realmd, $action_permission;
   valid_login($action_permission['delete']);
-  if ($server_type)
-    $tab_del_user_characters = $tab_del_user_characters_trinity;
 
   $sqlr = new SQL;
   $sqlr->connect($realm_db['addr'], $realm_db['user'], $realm_db['pass'], $realm_db['name']);
@@ -549,8 +468,6 @@ function backup_user()
     else redirect("user.php?error=1");
 
   require_once("libs/tab_lib.php");
-  if ($server_type)
-    $tab_backup_user_characters = $tab_backup_user_characters_trinity;
 
     $subdir = "$backup_dir/accounts/".date("m_d_y_H_i_s")."_partial";
     mkdir($subdir, 0750);
@@ -773,7 +690,7 @@ function add_new()
 //#########################################################################################################
 function doadd_new()
 {
-  global $lang_global, $realm_db, $action_permission, $server_type;
+  global $lang_global, $realm_db, $action_permission;
   valid_login($action_permission['insert']);
 
   if ( empty($_GET['new_user']) || empty($_GET['pass']) )
@@ -801,14 +718,8 @@ function doadd_new()
   $new_mail = (isset($_GET['new_mail'])) ? $sqlc->quote_smart(trim($_GET['new_mail'])) : NULL;
   $locked = (isset($_GET['new_locked'])) ? $sqlc->quote_smart($_GET['new_locked']) : 0;
   $expansion = (isset($_GET['new_expansion'])) ? $sqlc->quote_smart($_GET['new_expansion']) : 0;
-  if ($server_type) {
-	  $result = $sqlc->query("INSERT INTO account (username,sha_pass_hash,gmlevel,email, joindate,last_ip,failed_logins,locked,last_login,expansion)
-									  VALUES ('$new_user','$pass',0 ,'$new_mail',now() ,'$last_ip',0, $locked ,NULL, $expansion)");
-  } else {
-	  $result = $sqlc->query("INSERT INTO account (username,sha_pass_hash,gmlevel,email, joindate,last_ip,failed_logins,locked,last_login,active_realm_id,expansion)
+  $result = $sqlc->query("INSERT INTO account (username,sha_pass_hash,gmlevel,email, joindate,last_ip,failed_logins,locked,last_login,active_realm_id,expansion)
 									  VALUES ('$new_user','$pass',0 ,'$new_mail',now() ,'$last_ip',0, $locked ,NULL, 0, $expansion)");
-
-  }
   if ($result)
     redirect("user.php?error=5");
 
@@ -821,10 +732,9 @@ function doadd_new()
 function edit_user()
 {
   global $lang_global, $lang_user, $output, $realm_db, $characters_db, $realm_id, $mmfpm_db, $user_lvl, $user_name,
-   $gm_level_arr, $action_permission, $expansion_select, $developer_test_mode, $multi_realm_mode, $server, $server_type;
+   $gm_level_arr, $action_permission, $expansion_select, $developer_test_mode, $multi_realm_mode, $server;
 
-  $active_realm_id_pq = ($server_type) ? "0 as active_realm_id" : 
-													"active_realm_id";
+  $active_realm_id_pq = "active_realm_id";
 
 
   if (empty($_GET['id'])) redirect("user.php?error=10");
@@ -838,13 +748,7 @@ function edit_user()
 
   $id = $sqlr->quote_smart($_GET['id']);
 
-  if ($server_type == 1) {
-
-  $result = $sqlr->query("SELECT * FROM account LEFT JOIN account_access ON account.id=account_access.id WHERE account.id = '$id'");
-  }
-  else {
-      $result = $sqlr->query("SELECT id,username,gmlevel,email,joindate,last_ip,failed_logins,locked,last_login,{$active_realm_id_pq},expansion FROM account WHERE id = '$id'");
-  }
+  $result = $sqlr->query("SELECT id,username,gmlevel,email,joindate,last_ip,failed_logins,locked,last_login,{$active_realm_id_pq},expansion FROM account WHERE id = '$id'");
   $data = $sqlr->fetch_assoc($result);
 
   $refguid = $sqlm->fetch_assoc($sqlm->query('SELECT InvitedBy FROM mm_point_system_invites WHERE PlayersAccount = '.$data['id'].''));
@@ -1194,11 +1098,7 @@ function doedit_user()
   if (!valid_alphabetic($username))
     redirect("user.php?action=edit_user&error=9&id=$id");
   //restricting accsess to lower gmlvl
-  if ($server_type) {
-    $result = $sqlr->query("SELECT username FROM account LEFT JOIN account_access ON account.id=account_access.id WHERE account.id = '$id'");
-  } else {
-    $result = $sqlr->query("SELECT gmlevel,username FROM account WHERE id = '$id'");
-  }
+  $result = $sqlr->query("SELECT gmlevel,username FROM account WHERE id = '$id'");
   if (($user_lvl <= $sqlr->result($result, 0, 'gmlevel')) && ($user_name != $sqlr->result($result, 0, 'username')))
     redirect("user.php?error=14");
   if (!$banned)
@@ -1211,9 +1111,6 @@ function doedit_user()
                  VALUES ($id, ".time().",".(time()+(365*24*3600)).",'$user_name','$banreason', 1)");
   }
     $sqlr->query("UPDATE account SET email='$mail', $user_pass_change v=0,s=0,failed_logins='$failed',locked='$locked',expansion='$expansion' WHERE id='$id'");
- if ($server_type == 1)
-    $sqlr->query("UPDATE account_access SET gmlevel='$gmlevel' WHERE id='$id'");
-else
     $sqlr->query("UPDATE account SET gmlevel='$gmlevel' WHERE id='$id'");
   if (doupdate_referral($referredby, $id) || $sqlr->affected_rows())
     redirect("user.php?action=edit_user&error=13&id=$id");

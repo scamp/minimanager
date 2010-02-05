@@ -15,7 +15,7 @@ function front(&$sqlr, &$sqlc, &$sqlm)
   global $output, $lang_global, $lang_index,
     $realm_id, $world_db, $mmfpm_db, $server,
     $action_permission, $user_lvl, $user_id,
-    $server_type, $showcountryflag, $motd_display_poster, $gm_online_count, $gm_online, $itemperpage;
+    $showcountryflag, $motd_display_poster, $gm_online_count, $gm_online, $itemperpage;
 
   $output .= '
           <div class="top">';
@@ -78,20 +78,10 @@ function front(&$sqlr, &$sqlc, &$sqlm)
   $sqlw->connect($world_db[$realm_id]['addr'], $world_db[$realm_id]['user'], $world_db[$realm_id]['pass'], $world_db[$realm_id]['name']);
 
   //  This retrieves the actual database version from the database itself, instead of hardcoding it into a string
-  if ($server_type)
-  {
-    $version = $sqlw->fetch_assoc($sqlw->query('SELECT core_revision, db_version FROM version'), 0);
-    $output .= '
-            '.$lang_index['trinity_rev'].' '.$version['core_revision'].' '.$lang_index['using_db'].' '.$version['db_version'].'
-          </div>';
-  }
-  else
-  {
-    $version = $sqlw->fetch_assoc($sqlw->query('SELECT version FROM db_version'));
-    $output .= '
+  $version = $sqlw->fetch_assoc($sqlw->query('SELECT version FROM db_version'));
+  $output .= '
             Mangos: '.$server[$realm_id]['rev'].' '.$lang_index['using_db'].' '.$version['version'].'
           </div>';
-  }
   unset($version);
 
   //MOTD part
@@ -203,7 +193,6 @@ function front(&$sqlr, &$sqlc, &$sqlm)
       SELECT guid, name, race, class, zone, map, level, account, gender,
         CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_HONOR_POINTS+1).'), " ", -1) AS UNSIGNED) AS highest_rank,
         CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_GUILD_ID+1).'), " ", -1) AS UNSIGNED) as gname
-        '.($server_type ? ', latency ' : ' ').'
         FROM characters WHERE online= 1 '.($gm_online == '0' ? 'AND extra_flags &1 = 0 ' : '').$order_side.' ORDER BY '.$order_by.' '.$order_dir.' LIMIT '.$start.', '.$itemperpage.'');
     $total_online = $sqlc->result($sqlc->query('SELECT count(*) FROM characters WHERE online= 1'.(($gm_online_count == '0') ? ' AND extra_flags &1 = 0' : '')), 0);
     $replace = '
@@ -217,7 +206,7 @@ function front(&$sqlr, &$sqlc, &$sqlm)
             <font class="bold">'.$lang_index['tot_users_online'].': '.$total_online.'</font>
             <table class="lined">
               <tr>
-                <td colspan="'.(10-$showcountryflag-$server_type).'" align="right" class="hidden" width="25%">';
+                <td colspan="'.(10-$showcountryflag).'" align="right" class="hidden" width="25%">';
     $output .= generate_pagination('index.php?start_m='.$start_m.'&amp;order_by='.$order_by.'&amp;dir='.(($dir) ? 0 : 1), $total_online, $itemperpage, $start);
     $output .= '
                 </td>
@@ -231,9 +220,6 @@ function front(&$sqlr, &$sqlc, &$sqlm)
                 <th width="15%"><a href="index.php?start='.$start.'&amp;start_m='.$start_m.'&amp;order_by=gname&amp;dir='.$dir.'"'.($order_by==='gname' ? ' class="'.$order_dir.'"' : '').'>'.$lang_index['guild'].'</a></th>
                 <th width="20%"><a href="index.php?start='.$start.'&amp;start_m='.$start_m.'&amp;order_by=map&amp;dir='.$dir.'"'.($order_by==='map '.$order_dir.', zone' ? ' class="'.$order_dir.'"' : '').'>'.$lang_index['map'].'</a></th>
                 <th width="25%"><a href="index.php?start='.$start.'&amp;start_m='.$start_m.'&amp;order_by=zone&amp;dir='.$dir.'"'.($order_by==='zone '.$order_dir.', map' ? ' class="'.$order_dir.'"' : '').'>'.$lang_index['zone'].'</a></th>';
-    if ($server_type)
-      $output .='
-                <th width="25%"><a href="index.php?start='.$start.'&amp;start_m='.$start_m.'&amp;order_by=latency&amp;dir='.$dir.'"'.($order_by==='latency' ? ' class="'.$order_dir.'"' : '').'>'.$lang_index['latency'].'</a></th>';
     if ($showcountryflag)
     {
       require_once 'libs/misc_lib.php';
@@ -242,12 +228,6 @@ function front(&$sqlr, &$sqlc, &$sqlm)
     }
     $output .= '
               </tr>';
-
-    if ($server_type)
-    {
-      $tlatency = 0;
-      $latencycount = 0;
-    }
 
     $sqlm = new SQL;
     $sqlm->connect($mmfpm_db['addr'], $mmfpm_db['user'], $mmfpm_db['pass'], $mmfpm_db['name']);
@@ -260,7 +240,6 @@ function front(&$sqlr, &$sqlc, &$sqlm)
         SELECT guid, name, race, class, zone, map, level, account, gender,
           CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_HONOR_POINTS+1).'), " ", -1) AS UNSIGNED) AS highest_rank,
           CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_GUILD_ID+1).'), " ", -1) AS UNSIGNED) as gname
-          '.($server_type ? ', latency ' : ' ').'
           FROM characters WHERE online= 1 '.($gm_online == '0' ? 'AND extra_flags &1 = 0 ' : '').$order_side.' and account = '.$char['id'].''));
         $char = $temp;
       }
@@ -268,25 +247,6 @@ function front(&$sqlr, &$sqlc, &$sqlm)
       $gm = $sqlr->result($sqlr->query('SELECT gmlevel FROM account WHERE id='.$char['account'].''), 0);
       $guild_name = $sqlc->result($sqlc->query('SELECT name FROM guild WHERE guildid='.$char['gname'].''));
 
-      if ($server_type)
-      {
-        $lat = $char['latency'];
-        if ('120' > $lat)
-          $cc = '<font color="#00FF00">';
-        else if ('120' < $lat AND '350' > $lat)
-          $cc = '<font color="#FFFF00">';
-        else
-          $cc = '<font color="#FF0000">';
-
-        if ($lat)
-          $cc .= $lat;
-        else
-          $cc = '<i>Pending..</i>';
-        $cc .= '</font> ms';
-
-        $tlatency = ($tlatency+$lat);
-        $latencycount = ($latencycount+1);
-      }
       $output .= '
               <tr>
                 <td>';
@@ -315,9 +275,6 @@ function front(&$sqlr, &$sqlc, &$sqlm)
                 </td>
                 <td><span onmousemove="toolTip(\'MapID:'.$char['map'].'\', \'item_tooltip\')" onmouseout="toolTip()">'.get_map_name($char['map'], $sqlm).'</span></td>
                 <td><span onmousemove="toolTip(\'ZoneID:'.$char['zone'].'\', \'item_tooltip\')" onmouseout="toolTip()">'.get_zone_name($char['zone'], $sqlm).'</span></td>';
-      if ($server_type)
-        $output .='
-                <td>'.$cc.'</td>';
       if ($showcountryflag)
       {
         $country = misc_get_country_by_account($char['account'], $sqlr, $sqlm);
@@ -329,11 +286,8 @@ function front(&$sqlr, &$sqlc, &$sqlm)
     }
     $output .= '
               <tr>';
-    if ($server_type)
-      $output .= '
-                <td class="hidden" align="right">'.$lang_index['a_latency'].' : '.round(( ($latencycount) ? $tlatency/$latencycount : 0 ), 2).' ms</td>';
     $output .= '
-                <td colspan="'.(10-$showcountryflag-$server_type).'" align="right" class="hidden" width="25%">';
+                <td colspan="'.(10-$showcountryflag).'" align="right" class="hidden" width="25%">';
     $output .= generate_pagination('index.php?start_m='.$start_m.'&amp;order_by='.$order_by.'&amp;dir='.(($dir) ? 0 : 1), $total_online, $itemperpage, $start);
     unset($total_online);
     $output .= '

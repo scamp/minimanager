@@ -12,7 +12,7 @@ if(!isset($_POST['override']) || $_POST['override'] != '1')
 // print cleanup options
 //#################################################################################################################
 function cleanup(){
- global $lang_cleanup,$lang_global,$output, $server_type;
+ global $lang_cleanup,$lang_global,$output;
 
  $output .= "<center>
  <fieldset style=\"width: 740px;\">
@@ -115,10 +115,7 @@ break;
  case "last_login":
   $sql->connect($realm_db['addr'], $realm_db['user'], $realm_db['pass'], $realm_db['name']);
 
-  if ($server_type) {
-    $result = $sql->query("SELECT account.id FROM account left join account_access on account.id = account_access.id  WHERE account.last_login $cleanup_sign '$cleanup_value' AND account_access.gmlevel < $user_lvl OR account.last_login $cleanup_sign '$cleanup_value' AND account_access.gmlevel IS NULL");}
-  else{
-    $result = $sql->query("SELECT id FROM account WHERE last_login $cleanup_sign '$cleanup_value' AND gmlevel < $user_lvl");}
+  $result = $sql->query("SELECT id FROM account WHERE last_login $cleanup_sign '$cleanup_value' AND gmlevel < $user_lvl");
   $total_accounts = $sql->num_rows($result);
 
   $output .= "<center>";
@@ -159,10 +156,7 @@ break;
 case "failed_login":
  $sql->connect($realm_db['addr'], $realm_db['user'], $realm_db['pass'], $realm_db['name']);
 
-  if ($server_type) {
-    $result = $sql->query("SELECT account.id FROM account left join account_access on account.id = account_access.id  WHERE account.failed_logins $cleanup_sign '$cleanup_value' AND account_access.gmlevel < $user_lvl OR account.failed_logins $cleanup_sign '$cleanup_value' AND account_access.gmlevel IS NULL");}
-  else{ 
-    $result = $sql->query("SELECT id FROM account WHERE failed_logins $cleanup_sign $cleanup_value AND gmlevel < $user_lvl");}
+ $result = $sql->query("SELECT id FROM account WHERE failed_logins $cleanup_sign $cleanup_value AND gmlevel < $user_lvl");
  $total_accounts = $sql->num_rows($result);
 
  $output .= "<center>";
@@ -287,10 +281,7 @@ break;
 case "locked":
  $sql->connect($realm_db['addr'], $realm_db['user'], $realm_db['pass'], $realm_db['name']);
 
-  if ($server_type) {
-    $result = $sql->query("SELECT account.id FROM account left join account_access on account.id = account_access.id  WHERE account.locked $cleanup_sign '$cleanup_value' AND account_access.gmlevel < $user_lvl OR account.locked $cleanup_sign '$cleanup_value' AND account_access.gmlevel IS NULL");}
-  else{
-    $result = $sql->query("SELECT id FROM account WHERE locked $cleanup_sign $cleanup_value AND gmlevel < $user_lvl");}
+ $result = $sql->query("SELECT id FROM account WHERE locked $cleanup_sign $cleanup_value AND gmlevel < $user_lvl");
  $total_accounts = $sql->num_rows($result);
 
  $output .= "<center>";
@@ -332,10 +323,7 @@ break;
 case "num_of_char_in_acc":
  $sql->connect($realm_db['addr'], $realm_db['user'], $realm_db['pass'], $realm_db['name']);
 
-  if ($server_type) {
-    $result = $sql->query("SELECT account.id FROM account left join account_access on account.id = account_access.id  WHERE account_access.gmlevel < $user_lvl OR account_access.gmlevel IS NULL");}
-  else{
-    $result = $sql->query("SELECT id FROM account WHERE gmlevel < $user_lvl");}
+ $result = $sql->query("SELECT id FROM account WHERE gmlevel < $user_lvl");
  $acc_output_array = array();
 
  while($acc = $sql->fetch_row($result)){
@@ -490,10 +478,7 @@ default:
 //################################################################################################
 function docleanup(){
  global $lang_cleanup, $lang_global, $output, $realm_db, $characters_db, $realm_id, $user_lvl,
-    $tab_del_user_characters, $tab_del_user_characters_trinity, $tab_del_user_realmd;
-
- if ($server_type)
-   $tab_del_user_characters = $tab_del_user_characters_trinity;
+    $tab_del_user_characters, $tab_del_user_realmd;
 
  if (!isset($_POST['type']) || $_POST['type'] === '') redirect("cleanup.php?error=1");
 

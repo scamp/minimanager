@@ -83,14 +83,8 @@
 
   // links at footer
   $output .= '
-                <p>';
-  if ($server_type)
-    $output .= '
-                  <a href="http://www.trinitycore.org/" target="_blank"><img src="img/logo-trinity.png" class="logo_border" alt="trinity" /></a>';
-  else
-    $output .= '
+                <p>
                   <a href="http://getmangos.com/" target="_blank"><img src="img/logo-mangos.png" class="logo_border" alt="mangos" /></a>';
-  unset($server_type);
   $output .= '
                   <a href="http://www.php.net/" target="_blank"><img src="img/logo-php.png" class="logo_border" alt="php" /></a>
                   <a href="http://www.mysql.com/" target="_blank"><img src="img/logo-mysql.png" class="logo_border" alt="mysql" /></a>

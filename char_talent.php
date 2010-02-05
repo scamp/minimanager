@@ -15,7 +15,7 @@ function char_talent(&$sqlr, &$sqlc)
 {
   global $output, $lang_global, $lang_char,
     $realm_id, $realm_db, $characters_db, $mmfpm_db, $server,
-    $action_permission, $user_lvl, $user_name, $spell_datasite, $server_type;
+    $action_permission, $user_lvl, $user_name, $spell_datasite;
   // this page uses wowhead tooltops
   wowhead_tt();
 
@@ -51,16 +51,9 @@ function char_talent(&$sqlr, &$sqlc)
     $char = $sqlc->fetch_assoc($result);
 
     $owner_acc_id = $sqlc->result($result, 0, 'account');
-    if ($server_type == 1) {
-       $result = $sqlr->query('SELECT * FROM account LEFT JOIN account_access ON account.id=account_access.id WHERE account.id = '.$char['account'].'');
-       $owner_gmlvl = $sqlr->result($result, 0, 'account_access.gmlevel');
-       $owner_name = $sqlr->result($result, 0, 'account.username');
-    }
-    else {
-       $result = $sqlr->query('SELECT gmlevel,username FROM account WHERE id = '.$char['account'].'');
-       $owner_gmlvl = $sqlr->result($result, 0, 'gmlevel');
-       $owner_name = $sqlr->result($result, 0, 'username');
-    }
+     $result = $sqlr->query('SELECT gmlevel,username FROM account WHERE id = '.$char['account'].'');
+     $owner_gmlvl = $sqlr->result($result, 0, 'gmlevel');
+     $owner_name = $sqlr->result($result, 0, 'username');
 
     if (($user_lvl > $owner_gmlvl)||($owner_name === $user_name))
     {

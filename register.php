@@ -8,7 +8,7 @@
 //#####################################################################################################
 function doregister(){
  global $lang_global, $characters_db, $realm_db, $realm_id, $disable_acc_creation, $limit_acc_per_ip, $valid_ip_mask,
-       $send_mail_on_creation, $create_acc_locked, $from_mail, $mailer_type, $smtp_cfg, $title, $defaultoption, $server_type;
+       $send_mail_on_creation, $create_acc_locked, $from_mail, $mailer_type, $smtp_cfg, $title, $defaultoption;
 
  if (($_POST['security_code']) != ($_SESSION['security_code'])) {
    redirect("register.php?err=13");
@@ -108,14 +108,7 @@ function doregister(){
       $expansion = (isset($_POST['expansion'])) ? $sql->quote_smart($_POST['expansion']) : 0;
         else $expansion = $defaultoption;
 
-    if ($server_type) {
-      $result = $sql->query("INSERT INTO account (username,sha_pass_hash,email, joindate,last_ip,failed_logins,locked,last_login,expansion)
-              VALUES (UPPER('$user_name'),'$pass','$mail',now(),'$last_ip',0,$create_acc_locked,NULL,$expansion)");
-      $query_result = mysql_fetch_assoc($sql->query("SELECT id FROM account WHERE username = '$user_name'"));
-          $result = $sql->query("INSERT INTO account_access (`id`,`gmlevel`) VALUES ('".$query_result['id']."','0')");	
-        }  
-    else
-      $result = $sql->query("INSERT INTO account (username,sha_pass_hash,gmlevel,email, joindate,last_ip,failed_logins,locked,last_login,active_realm_id,expansion)
+    $result = $sql->query("INSERT INTO account (username,sha_pass_hash,gmlevel,email, joindate,last_ip,failed_logins,locked,last_login,active_realm_id,expansion)
               VALUES (UPPER('$user_name'),'$pass',0,'$mail',now(),'$last_ip',0,$create_acc_locked,NULL,0,$expansion)");
 
     $sql->close();
@@ -136,10 +129,7 @@ function doregister(){
         }
       }
 
-      if ($server_type)
-        $file_name = "mail_templates/mail_welcome_trinity.tpl";
-      else
-        $file_name = "mail_templates/mail_welcome_mangos.tpl";
+      $file_name = "mail_templates/mail_welcome.tpl";
       $fh = fopen($file_name, 'r');
       $subject = fgets($fh, 4096);
       $body = fread($fh, filesize($file_name));

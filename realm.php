@@ -356,7 +356,7 @@ function add_realm(&$sqlr)
   valid_login($action_permission['insert']);
 
   if ($sqlr->query('INSERT INTO realmlist (id, name, address, port, icon, color, timezone)
-    VALUES (NULL,"'.(($server_type) ? TRINITY : MANGOS).'", "127.0.0.1", 8085 ,0 ,0 ,1)'))
+    VALUES (NULL,"MaNGOS", "127.0.0.1", 8085 ,0 ,0 ,1)'))
     redirect('realm.php');
   else
     redirect('realm.php?error=4');

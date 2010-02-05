@@ -58,7 +58,7 @@ $realm_db['encoding'] = 'utf8';                   // SQL connection encoding
 $world_db[1]['addr']          = '127.0.0.1:3306'; // SQL server IP:port this DB located on
 $world_db[1]['user']          = 'root';           // SQL server login this DB located on
 $world_db[1]['pass']          = '1';              // SQL server pass this DB located on
-$world_db[1]['name']          = 'mangos';         // World Database name, by default "mangos" for MaNGOS, "world" for Trinity
+$world_db[1]['name']          = 'mangos';         // World Database name
 $world_db[1]['encoding']      = 'utf8';           // SQL connection encoding
 
                // position in array must represent realmd ID
@@ -73,7 +73,7 @@ $characters_db[1]['encoding'] = 'utf8';           // SQL connection encoding
 $world_db[2]['addr']          = '127.0.0.1:3306'; // SQL server IP:port this DB located on
 $world_db[2]['user']          = 'root';           // SQL server login this DB located on
 $world_db[2]['pass']          = '1';              // SQL server pass this DB located on
-$world_db[2]['name']          = 'mangos';         // World Database name, by default "mangos" for MaNGOS, "world" for Trinity
+$world_db[2]['name']          = 'mangos';         // World Database name
 $world_db[2]['encoding']      = 'utf8';           // SQL connection encoding
                // position in array must represent realmd ID
 $characters_db[2]['addr']     = '127.0.0.1:3306'; // SQL server IP:port this DB located on
@@ -87,8 +87,6 @@ $characters_db[2]['encoding'] = 'utf8';           // SQL connection encoding
 //#############################################################################
 //---- Game Server Configuration ----
 
-$server_type        =  0;           // 0=MaNGOS, 1=Trinity
-
         // position in array must represent realmd ID, same as in $world_db
 $server[1]['addr']          = '127.0.0.1'; // Game Server IP, as seen by MiniManager, from your webhost
 $server[1]['addr_wan']      = '127.0.0.1'; // Game Server IP, as seen by clients - Must be external address
@@ -98,7 +96,7 @@ $server[1]['term_port']     =  22;         // Terminal port
 $server[1]['telnet_port']   =  3443;       // Telnet port - Telnet settins are needed for sending InGame Mail.
 $server[1]['telnet_user']   = 'USER';      // Telnet username, must be all CAPS
 $server[1]['telnet_pass']   = 'pass';      // Telnet password
-$server[1]['rev']           = 'rev. ';     // MaNGOS rev. used (Trinity does not need this)
+$server[1]['rev']           = 'rev. ';     // MaNGOS rev. used
 $server[1]['both_factions'] =  true;       // Allow to see opponent faction characters. Affects only players.
 $server[1]['talent_rate']   =  1;          // Talent rate set for this server, needed for talent point calculation
 
@@ -112,7 +110,7 @@ $server[2]['term_port']     =  22;         // Terminal port
 $server[2]['telnet_port']   =  3443;       // Telnet port - Telnet settins are needed for sending InGame Mail.
 $server[2]['telnet_user']   = 'USER';      // Telnet username, must be all CAPS
 $server[2]['telnet_pass']   = 'pass';      // Telnet password
-$server[2]['rev']           = 'rev. ';     // MaNGOS rev. used (Trinity does not need this)
+$server[2]['rev']           = 'rev. ';     // MaNGOS rev. used
 $server[2]['both_factions'] =  true;       // Allow to see opponent faction characters. Affects only players.
 $server[2]['talent_rate']   =  1;          // Talent rate set for this server, needed for talent point calculation
 */
@@ -210,7 +208,7 @@ $anony_realm_id      =  1;          // guest account default realm
 //#############################################################################
 //---- Layout configuration ----
 
-$title               = 'MiniManager for Mangos Server';
+$title               = 'MiniManager for Project MaNGOS';
 $itemperpage         =  25;
 $showcountryflag     =  true;
 
@@ -319,7 +317,7 @@ $menu_array = array
     (
       array(       'user.php',   'accounts', 1,5,5,5),
       array(  'char_list.php', 'characters', 0,5,5,5),
-      array(    'command.php',    'command', 1,5,5,5),
+      array(    'command.php',    'command', 0,5,5,5),
       array(       'mail.php',       'mail', 1,5,5,5),
       array(     'ticket.php',    'tickets', 2,5,5,5),
       array(     'banned.php','banned_list', 3,5,5,5),

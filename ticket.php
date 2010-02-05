@@ -12,22 +12,15 @@ function browse_tickets(&$sqlc)
   global $output, $lang_global, $lang_ticket,
     $characters_db, $realm_id,
     $action_permission, $user_lvl,
-    $itemperpage, $server_type;
+    $itemperpage;
 
   //==========================$_GET and SECURE=================================
   $start = (isset($_GET['start'])) ? $sqlc->quote_smart($_GET['start']) : 0;
   if (is_numeric($start)); else $start=0;
 
-  if ($server_type)
-  {
-    $order_by = (isset($_GET['order_by'])) ? $sqlc->quote_smart($_GET['order_by']) : 'guid';
-    if (preg_match('/^[_[:lower:]]{1,10}$/', $order_by)); else $order_by = 'guid';
-  }
-  else
-  {
-    $order_by = (isset($_GET['order_by'])) ? $sqlc->quote_smart($_GET['order_by']) : 'ticket_id';
-    if (preg_match('/^[_[:lower:]]{1,10}$/', $order_by)); else $order_by = 'ticket_id';
-  }
+  $order_by = (isset($_GET['order_by'])) ? $sqlc->quote_smart($_GET['order_by']) : 'ticket_id';
+  if (preg_match('/^[_[:lower:]]{1,10}$/', $order_by)); else $order_by = 'ticket_id';
+
 
   $dir = (isset($_GET['dir'])) ? $sqlc->quote_smart($_GET['dir']) : 1;
   if (preg_match('/^[01]{1}$/', $dir)); else $dir=1;
@@ -37,23 +30,14 @@ function browse_tickets(&$sqlc)
   //==========================$_GET and SECURE end=============================
 
   //get total number of items
-  if($server_type)
-    $query_1 = $sqlc->query('SELECT count(*) FROM gm_tickets');
-  else
-    $query_1 = $sqlc->query('SELECT count(*) FROM character_ticket');
+  $query_1 = $sqlc->query('SELECT count(*) FROM character_ticket');
   $all_record = $sqlc->result($query_1,0);
   unset($query_1);
 
-  if($server_type)
-    $query = $sqlc->query("SELECT gm_tickets.guid, gm_tickets.playerGuid, SUBSTRING_INDEX(gm_tickets.message,' ',6),`characters`.name
-      FROM gm_tickets,`characters`
-          WHERE gm_tickets.playerGuid = `characters`.`guid`
-            ORDER BY $order_by $order_dir LIMIT $start, $itemperpage");
- else
-   $query = $sqlc->query("SELECT character_ticket.ticket_id, character_ticket.guid, SUBSTRING_INDEX(character_ticket.ticket_text,' ',6), `characters`.name
-     FROM character_ticket,`characters`
-         WHERE character_ticket.guid = `characters`.`guid`
-           ORDER BY $order_by $order_dir LIMIT $start, $itemperpage");
+ $query = $sqlc->query("SELECT character_ticket.ticket_id, character_ticket.guid, SUBSTRING_INDEX(character_ticket.ticket_text,' ',6), `characters`.name
+   FROM character_ticket,`characters`
+       WHERE character_ticket.guid = `characters`.`guid`
+         ORDER BY $order_by $order_dir LIMIT $start, $itemperpage");
 
   $output .="
         <script type=\"text/javascript\" src=\"libs/js/check.js\"></script>
@@ -78,12 +62,7 @@ function browse_tickets(&$sqlc)
   if($user_lvl >= $action_permission['update'])
     $output .="
                 <th width=\"7%\">{$lang_global['edit']}</th>";
-  if ($server_type)
-    $output .="
-                <th width=\"10%\"><a href=\"ticket.php?order_by=guid&amp;start=$start&amp;dir=$dir\">".($order_by=='guid' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" alt=\"\" /> " : "")."{$lang_ticket['id']}</a></th>
-                <th width=\"16%\"><a href=\"ticket.php?order_by=playerGuid&amp;start=$start&amp;dir=$dir\">".($order_by=='playerGuid' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" alt=\"\" /> " : "")."{$lang_ticket['sender']}</a></th>";
-  else
-    $output .="
+  $output .="
                 <th width=\"10%\"><a href=\"ticket.php?order_by=ticket_id&amp;start=$start&amp;dir=$dir\">".($order_by=='ticket_id' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" alt=\"\" /> " : "")."{$lang_ticket['id']}</a></th>
                 <th width=\"16%\"><a href=\"ticket.php?order_by=guid&amp;start=$start&amp;dir=$dir\">".($order_by=='guid' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" alt=\"\" /> " : "")."{$lang_ticket['sender']}</a></th>";
   $output .="
@@ -136,7 +115,7 @@ function browse_tickets(&$sqlc)
 //########################################################################################################################
 function delete_tickets()
 {
-  global $lang_global, $characters_db, $realm_id, $server_type, $action_permission;
+  global $lang_global, $characters_db, $realm_id, $action_permission;
   valid_login($action_permission['delete']);
 
   if(!isset($_GET['check'])) redirect("ticket.php?error=1");
@@ -151,10 +130,7 @@ function delete_tickets()
   {
     if ($check[$i] != "" )
     {
-      if ($server_type)
-        $query = $sqlc->query("DELETE FROM gm_tickets WHERE guid = '$check[$i]'");
-      else
-        $query = $sqlc->query("DELETE FROM character_ticket WHERE ticket_id = '$check[$i]'");
+      $query = $sqlc->query("DELETE FROM character_ticket WHERE ticket_id = '$check[$i]'");
       $deleted_tickets++;
     }
   }
@@ -171,7 +147,7 @@ function delete_tickets()
 //########################################################################################################################
 function edit_ticket()
 {
-  global  $lang_global, $lang_ticket, $output, $characters_db, $realm_id, $server_type, $action_permission;
+  global  $lang_global, $lang_ticket, $output, $characters_db, $realm_id, $action_permission;
   valid_login($action_permission['update']);
 
   if(!isset($_GET['id'])) redirect("Location: ticket.php?error=1");
@@ -182,16 +158,10 @@ function edit_ticket()
   $id = $sqlc->quote_smart($_GET['id']);
   if(is_numeric($id)); else redirect("ticket.php?error=1");
 
-  if ($server_type)
-    $query = $sqlc->query("SELECT gm_tickets.playerGuid, gm_tickets.message text, `characters`.name
-      FROM gm_tickets,`characters`
-        LEFT JOIN gm_tickets k1 ON k1.`playerGuid`=`characters`.`guid`
-          WHERE gm_tickets.playerGuid = `characters`.`guid` AND gm_tickets.guid = '$id'");
-  else
-    $query = $sqlc->query("SELECT character_ticket.guid, character_ticket.ticket_text, `characters`.name
-      FROM character_ticket,`characters`
-        LEFT JOIN character_ticket k1 ON k1.`guid`=`characters`.`guid`
-          WHERE character_ticket.guid = `characters`.`guid` AND character_ticket.ticket_id = '$id'");
+  $query = $sqlc->query("SELECT character_ticket.guid, character_ticket.ticket_text, `characters`.name
+    FROM character_ticket,`characters`
+      LEFT JOIN character_ticket k1 ON k1.`guid`=`characters`.`guid`
+        WHERE character_ticket.guid = `characters`.`guid` AND character_ticket.ticket_id = '$id'");
 
   if ($ticket = $sqlc->fetch_row($query))
   {
@@ -252,7 +222,7 @@ function edit_ticket()
 //########################################################################################################################
 function do_edit_ticket()
 {
-  global $characters_db, $realm_id, $server_type, $action_permission;
+  global $characters_db, $realm_id, $action_permission;
   valid_login($action_permission['update']);
 
   if(empty($_POST['new_text']) || empty($_POST['id']) )
@@ -265,10 +235,7 @@ function do_edit_ticket()
   $id = $sqlc->quote_smart($_POST['id']);
   if(is_numeric($id)); else redirect("ticket.php?error=1");
 
-  if ($server_type)
-    $query = $sqlc->query("UPDATE gm_tickets SET message='$new_text' WHERE guid = '$id'");
-  else
-    $query = $sqlc->query("UPDATE character_ticket SET ticket_text='$new_text' WHERE ticket_id = '$id'");
+  $query = $sqlc->query("UPDATE character_ticket SET ticket_text='$new_text' WHERE ticket_id = '$id'");
 
   if ($sqlc->affected_rows())
   {

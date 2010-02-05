@@ -14,7 +14,7 @@ function browse_chars(&$sqlr, &$sqlc)
   global $output, $lang_char_list, $lang_global,
     $realm_db, $mmfpm_db, $characters_db, $realm_id,
     $action_permission, $user_lvl, $user_name,
-    $showcountryflag, $itemperpage, $server_type;
+    $showcountryflag, $itemperpage;
 
   $sqlm = new SQL;
   $sqlm->connect($mmfpm_db['addr'], $mmfpm_db['user'], $mmfpm_db['pass'], $mmfpm_db['name']);
@@ -296,10 +296,7 @@ function browse_chars(&$sqlr, &$sqlc)
   {
     $char = $sqlr->fetch_row($query) or die(error($lang_global['err_no_user']));
     // to disalow lower lvl gm to  view accounts of other gms
-    if ($server_type)
-      $result = $sqlr->query("SELECT gmlevel, username FROM account LEFT JOIN account_access ON account.id=account_access.id WHERE account.id ='$char[2]'");
-    else
-      $result = $sqlr->query("SELECT gmlevel, username FROM account WHERE id ='$char[2]'");
+    $result = $sqlr->query("SELECT gmlevel, username FROM account WHERE id ='$char[2]'");
     $owner_gmlvl = $sqlr->result($result, 0, 'gmlevel');
       if ($owner_gmlvl == null)
         $owner_gmlvl = 0;
@@ -436,11 +433,8 @@ function dodel_char(&$sqlc)
   global $output, $lang_global, $lang_char_list,
     $characters_db, $realm_id,
     $action_permission,
-    $server_type, $tab_del_user_characters, $tab_del_user_characters_trinity;
+    $tab_del_user_characters;
   valid_login($action_permission['delete']);
-
-  if ($server_type)
-    $tab_del_user_characters = $tab_del_user_characters_trinity;
 
   if(isset($_GET['check'])) $check = $sqlc->quote_smart($_GET['check']);
     else redirect('char_list.php?error=1');

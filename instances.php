@@ -14,7 +14,7 @@ function instances()
 {
   global $output, $lang_instances,
     $realm_id, $world_db, $mmfpm_db,
-    $server_type, $itemperpage;
+    $itemperpage;
 
   $sqlw = new SQL;
   $sqlw->connect($world_db[$realm_id]['addr'], $world_db[$realm_id]['user'], $world_db[$realm_id]['pass'], $world_db[$realm_id]['name']);
@@ -37,13 +37,8 @@ function instances()
   $all_record = $sqlw->result($sqlw->query('SELECT count(*) FROM instance_template'), 0);
 
   // main data that we need for this page, instances
-  if ($server_type)
-    $result = $sqlw->query('SELECT map, level_min, level_max
-      FROM instance_template JOIN access_requirement ON access_requirement.id = instance_template.access_id
-      ORDER BY '.$order_by.' '.$order_dir.' LIMIT '.$start.', '.$itemperpage.';');
-  else
-    $result = $sqlw->query('SELECT map, levelMin as level_min, levelMax as level_max
-      FROM instance_template ORDER BY '.$order_by.' '.$order_dir.' LIMIT '.$start.', '.$itemperpage.';');
+  $result = $sqlw->query('SELECT map, levelMin as level_min, levelMax as level_max
+    FROM instance_template ORDER BY '.$order_by.' '.$order_dir.' LIMIT '.$start.', '.$itemperpage.';');
 
   //---------------Page Specific Data Starts Here--------------------------
   // we start with a lead of 10 spaces,
