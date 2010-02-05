@@ -10,7 +10,7 @@ valid_login($action_permission['read']);
 //#############################################################################
 // MINIMANAGER FRONT PAGE
 //#############################################################################
-function front(&$sqlr, &$sqlc)
+function front(&$sqlr, &$sqlc, &$sqlm)
 {
   global $output, $lang_global, $lang_index,
     $realm_id, $world_db, $mmfpm_db, $server,
@@ -98,7 +98,10 @@ function front(&$sqlr, &$sqlc)
   $start_m = (isset($_GET['start_m'])) ? $sqlc->quote_smart($_GET['start_m']) : 0;
   if (is_numeric($start_m)); else $start_m = 0;
 
-  $all_record_m = $sqlc->result($sqlc->query('SELECT count(*) FROM bugreport'), 0);
+  $sqlm = new SQL;
+  $sqlm->connect($mmfpm_db['addr'], $mmfpm_db['user'], $mmfpm_db['pass'], $mmfpm_db['name']);
+
+  $all_record_m = $sqlm->result($sqlm->query('SELECT count(*) FROM mm_motd'), 0);
 
   if ($user_lvl >= $action_permission['delete'])
     $output .= '
@@ -123,8 +126,8 @@ function front(&$sqlr, &$sqlc)
 
   if($all_record_m)
   {
-    $result = $sqlc->query('SELECT id, type, content FROM bugreport ORDER BY id DESC LIMIT '.$start_m.', 3');
-    while($post = $sqlc->fetch_assoc($result))
+    $result = $sqlm->query('SELECT id, realmid, type, content FROM mm_motd WHERE realmid = '.$realm_id.' ORDER BY id DESC LIMIT '.$start_m.', 3');
+    while($post = $sqlm->fetch_assoc($result))
     {
       $output .= '
               <tr>
@@ -352,7 +355,7 @@ function front(&$sqlr, &$sqlc)
 
 $lang_index = lang_index();
 
-front($sqlr, $sqlc);
+front($sqlr, $sqlc, $sqlm);
 
 //unset($action);
 unset($action_permission);

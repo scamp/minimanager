@@ -8,7 +8,7 @@ valid_login($action_permission['insert']);
 //#############################################################################
 // ADD MOTD
 //#############################################################################
-function add_motd()
+function add_motd(&$sqlm)
 {
   global $output, $lang_motd, $lang_global,
     $action_permission;
@@ -51,17 +51,23 @@ function add_motd()
 //#############################################################################
 // EDIT MOTD
 //#############################################################################
-function edit_motd(&$sqlc)
+function edit_motd(&$sqlm)
 {
-  global $output, $lang_motd, $lang_global,
+  global $output, $lang_motd, $lang_global,  $realm_id, $mmfpm_db,
     $action_permission;
   valid_login($action_permission['update']);
 
-  if(empty($_GET['id'])) redirect('motd.php?error=1');
-  $id = $sqlc->quote_smart($_GET['id']);
-  if(is_numeric($id)); else redirect('motd.php?error=1');
+  $sqlm = new SQL;
+  $sqlm->connect($mmfpm_db['addr'], $mmfpm_db['user'], $mmfpm_db['pass'], $mmfpm_db['name']);
 
-  $msg = $sqlc->result($sqlc->query('SELECT content FROM bugreport WHERE id = '.$id.''), 0);
+  if(empty($_GET['id']))
+    redirect('motd.php?error=1');
+  $id = $sqlm->quote_smart($_GET['id']);
+  if(is_numeric($id));
+  else
+    redirect('motd.php?error=1');
+
+  $msg = $sqlm->result($sqlm->query('SELECT content FROM mm_motd WHERE id = '.$id.''), 0);
 
   $output .= '
           <center>
@@ -103,20 +109,23 @@ function edit_motd(&$sqlc)
 //#####################################################################################################
 // DO ADD MOTD
 //#####################################################################################################
-function do_add_motd(&$sqlc)
+function do_add_motd(&$sqlm)
 {
-  global $action_permission, $user_name;
+  global $action_permission, $user_name, $realm_id, $mmfpm_db;
   valid_login($action_permission['insert']);
 
-  if (empty($_POST['msg'])) redirect('motd.php?error=1');
+  $sqlm = new SQL;
+  $sqlm->connect($mmfpm_db['addr'], $mmfpm_db['user'], $mmfpm_db['pass'], $mmfpm_db['name']);
 
-  $msg = $sqlc->quote_smart($_POST['msg']);
+  if (empty($_POST['msg']))
+    redirect('motd.php?error=1');
+  $msg = $sqlm->quote_smart($_POST['msg']);
   if (4096 < strlen($msg))
     redirect('motd.php?error=2');
 
   $by = date('m/d/y H:i:s').' Posted by: '.$user_name;
 
-  $sqlc->query('INSERT INTO bugreport (type, content) VALUES (\''.$by.'\', \''.$msg.'\')');
+  $sqlm->query('INSERT INTO mm_motd (realmid, type, content) VALUES (\''.$realm_id.'\', \''.$by.'\', \''.$msg.'\')');
   unset($by);
   unset($msg);
   redirect('index.php');
@@ -127,26 +136,30 @@ function do_add_motd(&$sqlc)
 //#####################################################################################################
 // DO EDIT MOTD
 //#####################################################################################################
-function do_edit_motd(&$sqlc)
+function do_edit_motd(&$sqlm)
 {
-  global $action_permission, $user_name;
+  global $action_permission, $user_name, $realm_id, $mmfpm_db;
   valid_login($action_permission['update']);
+
+  $sqlm = new SQL;
+  $sqlm->connect($mmfpm_db['addr'], $mmfpm_db['user'], $mmfpm_db['pass'], $mmfpm_db['name']);
 
   if (empty($_POST['msg']) || empty($_POST['id']))
     redirect('motd.php?error=1');
+  $id = $sqlm->quote_smart($_POST['id']);
+  if(is_numeric($id));
+  else
+    redirect('motd.php?error=1');
 
-  $id = $sqlc->quote_smart($_POST['id']);
-  if(is_numeric($id)); else redirect('motd.php?error=1');
-
-  $msg = $sqlc->quote_smart($_POST['msg']);
+  $msg = $sqlm->quote_smart($_POST['msg']);
   if (4096 < strlen($msg))
     redirect('motd.php?error=2');
 
-  $by = $sqlc->result($sqlc->query('SELECT type FROM bugreport WHERE id = '.$id.''), 0);
+  $by = $sqlm->result($sqlm->query('SELECT type FROM mm_motd WHERE id = '.$id.''), 0);
   $by = split('<br />', $by, 2);
   $by = $by[0].'<br />'.date('m/d/y H:i:s').' Edited by: '.$user_name;
 
-  $sqlc->query('UPDATE bugreport SET type = \''.$by.'\', content = \''.$msg.'\' WHERE id = '.$id.'');
+  $sqlm->query('UPDATE mm_motd SET realmid = \''.$realm_id.'\', type = \''.$by.'\', content = \''.$msg.'\' WHERE id = '.$id.'');
   unset($by);
   unset($msg);
   unset($id);
@@ -158,16 +171,22 @@ function do_edit_motd(&$sqlc)
 //#####################################################################################################
 // DELETE MOTD
 //#####################################################################################################
-function delete_motd(&$sqlc)
+function delete_motd(&$sqlm)
 {
-  global $action_permission;
+  global $action_permission, $realm_id, $mmfpm_db;
   valid_login($action_permission['delete']);
 
-  if (empty($_GET['id'])) redirect('index.php');
-  $id = $sqlc->quote_smart($_GET['id']);
-  if(is_numeric($id)); else redirect('motd.php?error=1');
+  $sqlm = new SQL;
+  $sqlm->connect($mmfpm_db['addr'], $mmfpm_db['user'], $mmfpm_db['pass'], $mmfpm_db['name']);
 
-  $sqlc->query('DELETE FROM bugreport WHERE id ='.$id.'');
+  if (empty($_GET['id']))
+    redirect('index.php');
+  $id = $sqlm->quote_smart($_GET['id']);
+  if(is_numeric($id));
+  else
+    redirect('motd.php?error=1');
+
+  $sqlm->query('DELETE FROM mm_motd WHERE id ='.$id.'');
   unset($id);
   redirect('index.php');
 
@@ -205,15 +224,15 @@ $output .= '
 $action = (isset($_GET['action'])) ? $_GET['action'] : NULL;
 
 if ('delete_motd' == $action)
-  delete_motd($sqlc);
+  delete_motd($sqlm);
 elseif ('add_motd' == $action)
-  add_motd($sqlc);
+  add_motd($sqlm);
 elseif ('do_add_motd' == $action)
-  do_add_motd($sqlc);
+  do_add_motd($sqlm);
 elseif ('edit_motd' == $action)
-  edit_motd($sqlc);
+  edit_motd($sqlm);
 elseif ('do_edit_motd' == $action)
-  do_edit_motd($sqlc);
+  do_edit_motd($sqlm);
 else
   add_motd();
 

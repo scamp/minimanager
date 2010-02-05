@@ -17,7 +17,7 @@ function edit_user(&$sqlr, &$sqlc)
   $sqlm = new SQL;
   $sqlm->connect($mmfpm_db['addr'], $mmfpm_db['user'], $mmfpm_db['pass'], $mmfpm_db['name']);
 
-  $refguid = $sqlm->result($sqlm->query('SELECT InvitedBy FROM point_system_invites WHERE PlayersAccount = \''.$user_id.'\''), 0, 'InvitedBy');
+  $refguid = $sqlm->result($sqlm->query('SELECT InvitedBy FROM mm_point_system_invites WHERE PlayersAccount = \''.$user_id.'\''), 0, 'InvitedBy');
   $referred_by = $sqlc->result($sqlc->query('SELECT name FROM characters WHERE guid = \''.$refguid.'\''), 0, 'name');
   unset($refguid);
 
@@ -301,7 +301,7 @@ function doupdate_referral($referredby, &$sqlr, &$sqlc)
   $sqlm = new SQL;
   $sqlm->connect($mmfpm_db['addr'], $mmfpm_db['user'], $mmfpm_db['pass'], $mmfpm_db['name']);
 
-  if (NULL == $sqlm->result($sqlm->query('SELECT InvitedBy FROM point_system_invites WHERE PlayersAccount = \''.$user_id.'\''), 0))
+  if (NULL == $sqlm->result($sqlm->query('SELECT InvitedBy FROM mm_point_system_invites WHERE PlayersAccount = \''.$user_id.'\''), 0))
   {
     $referred_by = $sqlc->result($sqlc->query('SELECT guid FROM characters WHERE name = \''.$referredby.'\''), 0);
 
@@ -313,7 +313,7 @@ function doupdate_referral($referredby, &$sqlr, &$sqlc)
       if ($result == $user_id);
       else
       {
-        $sqlm->query('INSERT INTO point_system_invites (PlayersAccount, InvitedBy, InviterAccount) VALUES (\''.$user_id.'\', \''.$referred_by.'\', \''.$result.'\')');
+        $sqlm->query('INSERT INTO mm_point_system_invites (PlayersAccount, InvitedBy, InviterAccount) VALUES (\''.$user_id.'\', \''.$referred_by.'\', \''.$result.'\')');
         return true;
       }
     }
