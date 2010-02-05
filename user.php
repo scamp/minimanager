@@ -1211,8 +1211,10 @@ function doedit_user()
                  VALUES ($id, ".time().",".(time()+(365*24*3600)).",'$user_name','$banreason', 1)");
   }
     $sqlr->query("UPDATE account SET email='$mail', $user_pass_change v=0,s=0,failed_logins='$failed',locked='$locked',expansion='$expansion' WHERE id='$id'");
-  if ($server_type)
+ if ($server_type == 1)
     $sqlr->query("UPDATE account_access SET gmlevel='$gmlevel' WHERE id='$id'");
+else
+    $sqlr->query("UPDATE account SET gmlevel='$gmlevel' WHERE id='$id'");
   if (doupdate_referral($referredby, $id) || $sqlr->affected_rows())
     redirect("user.php?action=edit_user&error=13&id=$id");
   else
