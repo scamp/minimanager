@@ -33,9 +33,9 @@ function char_main(&$sqlr, &$sqlc)
   {
     $realmid = $sqlr->quote_smart($_GET['realm']);
     if (is_numeric($realmid))
-	$sqlc->connect($characters_db[$realmid]['addr'], $characters_db[$realmid]['user'], $characters_db[$realmid]['pass'], $characters_db[$realmid]['name']);
+      $sqlc->connect($characters_db[$realmid]['addr'], $characters_db[$realmid]['user'], $characters_db[$realmid]['pass'], $characters_db[$realmid]['name']);
     else
-	$realmid = $realm_id;
+      $realmid = $realm_id;
   }
 
   $id = $sqlc->quote_smart($_GET['id']);
@@ -54,124 +54,105 @@ function char_main(&$sqlr, &$sqlc)
 
     if($user_lvl || $server[$realmid]['both_factions'])
     {
-	$side_v = 0;
-	$side_p = 0;
+      $side_v = 0;
+      $side_p = 0;
     }
     else
     {
-	$side_p = (in_array($sqlc->result($result, 0, 'race'),array(2,5,6,8,10))) ? 1 : 2;
-	$result_1 = $sqlc->query('SELECT race FROM characters WHERE account = '.$user_id.' LIMIT 1');
+      $side_p = (in_array($sqlc->result($result, 0, 'race'),array(2,5,6,8,10))) ? 1 : 2;
+      $result_1 = $sqlc->query('SELECT race FROM characters WHERE account = '.$user_id.' LIMIT 1');
       if ($sqlc->num_rows($result))
-  	$side_v = (in_array($sqlc->result($result_1, 0, 'race'), array(2,5,6,8,10))) ? 1 : 2;
+        $side_v = (in_array($sqlc->result($result_1, 0, 'race'), array(2,5,6,8,10))) ? 1 : 2;
       else
-  	$side_v = 0;
+        $side_v = 0;
       unset($result_1);
     }
 
     if ($user_lvl >= $owner_gmlvl && (($side_v === $side_p) || !$side_v))
     {
-	$result = $sqlc->query('SELECT data, name, race, class, level, zone, map, online, totaltime, gender, account,
-	CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_MELEE_CRIT+1).'),        " ", -1) AS UNSIGNED) AS MeleeCrit,
-	CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_RANGE_CRIT+1).'),        " ", -1) AS UNSIGNED) AS RangeCrit,
-	CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_SPELL_CRIT+1).'),        " ", -1) AS UNSIGNED) AS SpellCrit
-	FROM characters WHERE guid = '.$id.'');
-	$char = $sqlc->fetch_assoc($result);
-	$char_data = explode(' ',$char['data']);
+      $result = $sqlc->query('SELECT data, name, race, class, level, zone, map, online, totaltime, gender,
+        account FROM characters WHERE guid = '.$id.'');
+      $char = $sqlc->fetch_assoc($result);
+      $char_data = explode(' ',$char['data']);
 
-	$online = ($char['online']) ? $lang_char['online'] : $lang_char['offline'];
+      $online = ($char['online']) ? $lang_char['online'] : $lang_char['offline'];
 
       if($char_data[CHAR_DATA_OFFSET_GUILD_ID])
       {
-  	$guild_name = $sqlc->result($sqlc->query('SELECT name FROM guild WHERE guildid ='.$char_data[CHAR_DATA_OFFSET_GUILD_ID].''), 0, 'name');
-  	$guild_name = '<a href="guild.php?action=view_guild&amp;realm='.$realmid.'&amp;error=3&amp;id='.$char_data[CHAR_DATA_OFFSET_GUILD_ID].'" >'.$guild_name.'</a>';
-  	$mrank = $char_data[CHAR_DATA_OFFSET_GUILD_RANK] + 1;
-  	$guild_rank = $sqlc->result($sqlc->query('SELECT rname FROM guild_rank WHERE guildid ='.$char_data[CHAR_DATA_OFFSET_GUILD_ID].' AND rid='.$mrank.''), 0, 'rname');
+        $guild_name = $sqlc->result($sqlc->query('SELECT name FROM guild WHERE guildid ='.$char_data[CHAR_DATA_OFFSET_GUILD_ID].''), 0, 'name');
+        $guild_name = '<a href="guild.php?action=view_guild&amp;realm='.$realmid.'&amp;error=3&amp;id='.$char_data[CHAR_DATA_OFFSET_GUILD_ID].'" >'.$guild_name.'</a>';
+        $mrank = $char_data[CHAR_DATA_OFFSET_GUILD_RANK] + 1;
+        $guild_rank = $sqlc->result($sqlc->query('SELECT rname FROM guild_rank WHERE guildid ='.$char_data[CHAR_DATA_OFFSET_GUILD_ID].' AND rid='.$mrank.''), 0, 'rname');
       }
       else
       {
-  	$guild_name = $lang_global['none'];
-  	$guild_rank = $lang_global['none'];
+        $guild_name = $lang_global['none'];
+        $guild_rank = $lang_global['none'];
       }
 
-	$Block = array_pop(unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_BLOCK])));
-//	$Block = round($Block[1],2);
-	$Dodge = array_pop(unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_DODGE])));
-//	$Dodge = round($Dodge[1],2);
-	$Parry = array_pop(unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_PARRY])));
-//	$Parry = round($Parry[1],2);
-	$MeleeCrit = unpack('f', pack('L', $char['MeleeCrit']));
-	$MeleeCrit = round($MeleeCrit[1],2);
-	$RangeCrit = unpack('f', pack('L', $char['RangeCrit']));
-	$RangeCrit = round($RangeCrit[1],2);
-	$SpellCrit = unpack('f', pack('L', $char['SpellCrit']));
-	$SpellCrit = round($SpellCrit[1],2);
+      $block       = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_BLOCK]));
+      $block       = round($block[1],2);
+      $dodge       = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_DODGE]));
+      $dodge       = round($dodge[1],2);
+      $parry       = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_PARRY]));
+      $parry       = round($parry[1],2);
+      $crit        = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_MELEE_CRIT]));
+      $crit        = round($crit[1],2);
+      $ranged_crit = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_RANGE_CRIT]));
+      $ranged_crit = round($ranged_crit[1],2);
+      $maxdamage   = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_MAXDAMAGE]));
+      $maxdamage   = round($maxdamage[1],0);
+      $mindamage   = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_MINDAMAGE]));
+      $mindamage   = round($mindamage[1],0);
+      $maxrangeddamage = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_MAXRANGEDDAMAGE]));
+      $maxrangeddamage = round($maxrangeddamage[1],0);
+      $minrangeddamage = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_MINRANGEDDAMAGE]));
+      $minrangeddamage = round($minrangeddamage[1],0);
 
-	$MaxDmg = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_MAXDAMAGE]));
-	$MaxDmg = round($MaxDmg[1],0);
-	$MinDmg = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_MINDAMAGE]));
-	$MinDmg = round($MinDmg[1],0);
-	$MaxRangedDmg = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_MAXRANGEDDAMAGE]));
-	$MaxRangedDmg = round($MaxRangedDmg[1],0);
-	$MinRangedDmg = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_MINRANGEDDAMAGE]));
-	$MinRangedDmg = round($MinRangedDmg[1],0);
-	$Rage = round($char_data[CHAR_DATA_OFFSET_RAGE] / 10);
-	$MaxRage = round($char_data[CHAR_DATA_OFFSET_MAX_RAGE] / 10);
-	$Expertise = ''.$char_data[CHAR_DATA_OFFSET_EXPERTISE].' / '.$char_data[CHAR_DATA_OFFSET_OFFHAND_EXPERTISE].'';
-	$MaxHealth = $char_data[CHAR_DATA_OFFSET_MAX_HEALTH];
-	$Resilience = $char_data[CHAR_DATA_OFFSET_RESILIENCE];
-	$Honor = $char_data[CHAR_DATA_OFFSET_HONOR_POINTS];
-	$Arena = $char_data[CHAR_DATA_OFFSET_ARENA_POINTS];
-	$HonorKill = $char_data[CHAR_DATA_OFFSET_HONOR_KILL];
-	$Energy = $char_data[CHAR_DATA_OFFSET_MAX_ENERGY];
-	$MaxEnergy = $char_data[CHAR_DATA_OFFSET_ENERGY];
-	$Focus = $char_data[CHAR_DATA_OFFSET_FOCUS];
-	$MaxFocus = $char_data[CHAR_DATA_OFFSET_MAX_FOCUS];
-	$MaxMana = $char_data[CHAR_DATA_OFFSET_MAX_MANA];
-	$Str = $char_data[CHAR_DATA_OFFSET_STR];
-	$Agi = $char_data[CHAR_DATA_OFFSET_AGI];
-	$Sta = $char_data[CHAR_DATA_OFFSET_STA];
-	$Int = $char_data[CHAR_DATA_OFFSET_INT];
-	$Spi = $char_data[CHAR_DATA_OFFSET_SPI];
-	$Defense = $char_data[CHAR_DATA_OFFSET_DEFENSE];
-	$Armor = $char_data[CHAR_DATA_OFFSET_ARMOR];
-	$Holy = $char_data[CHAR_DATA_OFFSET_RES_HOLY];
-	$Arcane = $char_data[CHAR_DATA_OFFSET_RES_ARCANE];
-	$Fire = $char_data[CHAR_DATA_OFFSET_RES_FIRE];
-	$Nature = $char_data[CHAR_DATA_OFFSET_RES_NATURE];
-	$Frost = $char_data[CHAR_DATA_OFFSET_RES_FROST];
-	$Shadow = $char_data[CHAR_DATA_OFFSET_RES_SHADOW];
-	$MeleeDmg = ($char_data[CHAR_DATA_OFFSET_AP]+$char_data[CHAR_DATA_OFFSET_AP_MOD]);
-	$MeleeHit = $char_data[CHAR_DATA_OFFSET_MELEE_HIT];
-	$SpellHeal = $char_data[CHAR_DATA_OFFSET_SPELL_HEAL];
-	$SpellHit = $char_data[CHAR_DATA_OFFSET_SPELL_HIT];
-	$SpellHaste = $char_data[CHAR_DATA_OFFSET_SPELL_HASTE_RATING];
-	$RangedDmg = ($char_data[CHAR_DATA_OFFSET_RANGED_AP]+$char_data[CHAR_DATA_OFFSET_RANGED_AP_MOD]);
-	$RangedHit = $char_data[CHAR_DATA_OFFSET_RANGE_HIT];
-	$EQU_HEAD = $char_data[CHAR_DATA_OFFSET_EQU_HEAD];
-	$EQU_NECK = $char_data[CHAR_DATA_OFFSET_EQU_NECK];
-	$EQU_SHOULDER = $char_data[CHAR_DATA_OFFSET_EQU_SHOULDER];
-	$EQU_SHIRT = $char_data[CHAR_DATA_OFFSET_EQU_SHIRT];
-	$EQU_CHEST = $char_data[CHAR_DATA_OFFSET_EQU_CHEST];
-	$EQU_BELT = $char_data[CHAR_DATA_OFFSET_EQU_BELT];
-	$EQU_LEGS = $char_data[CHAR_DATA_OFFSET_EQU_LEGS];
-	$EQU_FEET = $char_data[CHAR_DATA_OFFSET_EQU_FEET];
-	$EQU_WRIST = $char_data[CHAR_DATA_OFFSET_EQU_WRIST];
-	$EQU_GLOVES = $char_data[CHAR_DATA_OFFSET_EQU_GLOVES];
-	$EQU_FINGER1 = $char_data[CHAR_DATA_OFFSET_EQU_FINGER1];
-	$EQU_FINGER2 = $char_data[CHAR_DATA_OFFSET_EQU_FINGER2];
-	$EQU_TRINKET1 = $char_data[CHAR_DATA_OFFSET_EQU_TRINKET1];
-	$EQU_TRINKET2 = $char_data[CHAR_DATA_OFFSET_EQU_TRINKET2];
-	$EQU_BACK = $char_data[CHAR_DATA_OFFSET_EQU_BACK];
-	$EQU_MAIN_HAND = $char_data[CHAR_DATA_OFFSET_EQU_MAIN_HAND];
-	$EQU_OFF_HAND = $char_data[CHAR_DATA_OFFSET_EQU_OFF_HAND];
-	$EQU_RANGED = $char_data[CHAR_DATA_OFFSET_EQU_RANGED];
-	$EQU_TABARD = $char_data[CHAR_DATA_OFFSET_EQU_TABARD];
-	$SpellDmg = $char_data[CHAR_DATA_OFFSET_SPELL_DAMAGE];
+      $spell_crit = 100;
+      for ($i=0; $i<6; ++$i)
+      {
+        $temp = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_SPELL_CRIT+1+$i]));
+        if ($temp[1] < $spell_crit)
+        $spell_crit = $temp[1];
+      }
+      $spell_crit = round($spell_crit,2);
+
+      $spell_damage = 9999;
+      for ($i=0; $i<6; ++$i)
+      {
+        if ($char_data[CHAR_DATA_OFFSET_SPELL_DAMAGE+1+$i] < $spell_damage)
+        $spell_damage = $char_data[CHAR_DATA_OFFSET_SPELL_DAMAGE+1+$i];
+      }
+
+      $rage       = round($char_data[CHAR_DATA_OFFSET_RAGE] / 10);
+      $maxrage    = round($char_data[CHAR_DATA_OFFSET_MAX_RAGE] / 10);
+      $expertise  = ''.$char_data[CHAR_DATA_OFFSET_EXPERTISE].' / '.$char_data[CHAR_DATA_OFFSET_OFFHAND_EXPERTISE].'';
+
+      $EQU_HEAD      = $char_data[CHAR_DATA_OFFSET_EQU_HEAD];
+      $EQU_NECK      = $char_data[CHAR_DATA_OFFSET_EQU_NECK];
+      $EQU_SHOULDER  = $char_data[CHAR_DATA_OFFSET_EQU_SHOULDER];
+      $EQU_SHIRT     = $char_data[CHAR_DATA_OFFSET_EQU_SHIRT];
+      $EQU_CHEST     = $char_data[CHAR_DATA_OFFSET_EQU_CHEST];
+      $EQU_BELT      = $char_data[CHAR_DATA_OFFSET_EQU_BELT];
+      $EQU_LEGS      = $char_data[CHAR_DATA_OFFSET_EQU_LEGS];
+      $EQU_FEET      = $char_data[CHAR_DATA_OFFSET_EQU_FEET];
+      $EQU_WRIST     = $char_data[CHAR_DATA_OFFSET_EQU_WRIST];
+      $EQU_GLOVES    = $char_data[CHAR_DATA_OFFSET_EQU_GLOVES];
+      $EQU_FINGER1   = $char_data[CHAR_DATA_OFFSET_EQU_FINGER1];
+      $EQU_FINGER2   = $char_data[CHAR_DATA_OFFSET_EQU_FINGER2];
+      $EQU_TRINKET1  = $char_data[CHAR_DATA_OFFSET_EQU_TRINKET1];
+      $EQU_TRINKET2  = $char_data[CHAR_DATA_OFFSET_EQU_TRINKET2];
+      $EQU_BACK      = $char_data[CHAR_DATA_OFFSET_EQU_BACK];
+      $EQU_MAIN_HAND = $char_data[CHAR_DATA_OFFSET_EQU_MAIN_HAND];
+      $EQU_OFF_HAND  = $char_data[CHAR_DATA_OFFSET_EQU_OFF_HAND];
+      $EQU_RANGED    = $char_data[CHAR_DATA_OFFSET_EQU_RANGED];
+      $EQU_TABARD    = $char_data[CHAR_DATA_OFFSET_EQU_TABARD];
 /*
 // reserved incase we want to use back minimanagers' built in tooltip, instead of wowheads'
 // minimanagers' item tooltip needs updating, but it can show enchantments and sockets.
 
-	$equiped_items = array
+      $equiped_items = array
       (
          1 => array(($EQU_HEAD      ? get_item_tooltip($EQU_HEAD)      : 0),($EQU_HEAD      ? get_item_icon($EQU_HEAD)      : 0),($EQU_HEAD      ? get_item_border($EQU_HEAD)      : 0)),
          2 => array(($EQU_NECK      ? get_item_tooltip($EQU_NECK)      : 0),($EQU_NECK      ? get_item_icon($EQU_NECK)      : 0),($EQU_NECK      ? get_item_border($EQU_NECK)      : 0)),
@@ -195,13 +176,13 @@ function char_main(&$sqlr, &$sqlc)
       );
 */
 
-	$sqlm = new SQL;
-	$sqlm->connect($mmfpm_db['addr'], $mmfpm_db['user'], $mmfpm_db['pass'], $mmfpm_db['name']);
+      $sqlm = new SQL;
+      $sqlm->connect($mmfpm_db['addr'], $mmfpm_db['user'], $mmfpm_db['pass'], $mmfpm_db['name']);
 
-	$sqlw = new SQL;
-	$sqlw->connect($world_db[$realmid]['addr'], $world_db[$realmid]['user'], $world_db[$realmid]['pass'], $world_db[$realmid]['name']);
+      $sqlw = new SQL;
+      $sqlw->connect($world_db[$realmid]['addr'], $world_db[$realmid]['user'], $world_db[$realmid]['pass'], $world_db[$realmid]['name']);
 
-	$equiped_items = array
+      $equiped_items = array
       (
          1 => array('',($EQU_HEAD      ? get_item_icon($EQU_HEAD, $sqlm, $sqlw)      : 0),($EQU_HEAD      ? get_item_border($EQU_HEAD, $sqlw)      : 0)),
          2 => array('',($EQU_NECK      ? get_item_icon($EQU_NECK, $sqlm, $sqlw)      : 0),($EQU_NECK      ? get_item_border($EQU_NECK, $sqlw)      : 0)),
@@ -224,7 +205,7 @@ function char_main(&$sqlr, &$sqlc)
         19 => array('',($EQU_TABARD    ? get_item_icon($EQU_TABARD, $sqlm, $sqlw)    : 0),($EQU_TABARD    ? get_item_border($EQU_TABARD, $sqlw)    : 0))
       );
 
-	$output .= '
+      $output .= '
           <!-- start of char.php -->
           <center>
             <div id="tab">
@@ -233,7 +214,7 @@ function char_main(&$sqlr, &$sqlc)
 
       if (($user_lvl > $owner_gmlvl)||($owner_name === $user_name))
       {
-  	$output .= '
+        $output .= '
                 <li><a href="char_inv.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['inventory'].'</a></li>
                 '.(($char['level'] < 10) ? '' : '<li><a href="char_talent.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['talents'].'</a></li>').'
                 <li><a href="char_achieve.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['achievements'].'</a></li>
@@ -246,20 +227,20 @@ function char_main(&$sqlr, &$sqlc)
                 <ul>
                   <li id="selected"><a href="char.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['char_sheet'].'</a></li>';
         if (char_get_class_name($char['class']) === 'Hunter' )
-    	$output .= '
+          $output .= '
                   <li><a href="char_pets.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['pets'].'</a></li>';
-  	$output .= '
+        $output .= '
                   <li><a href="char_rep.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['reputation'].'</a></li>
                   <li><a href="char_skill.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['skills'].'</a></li>';
       }
       else
-  	$output .='
+        $output .='
               </ul>
             </div>
             <div id="tab_content">
               <div id="tab">
                 <ul>';
-	$output .='
+      $output .='
                 </ul>
               </div>
               <div id="tab_content2">
@@ -270,18 +251,18 @@ function char_main(&$sqlr, &$sqlc)
                         <img src="'.char_get_avatar_img($char['level'], $char['gender'], $char['race'], $char['class'], 0).'" alt="avatar" />
                       </div>
                       <div>';
-	$a_results = $sqlc->query('SELECT DISTINCT spell FROM character_aura WHERE guid = '.$id.'');
+      $a_results = $sqlc->query('SELECT DISTINCT spell FROM character_aura WHERE guid = '.$id.'');
       if ($sqlc->num_rows($a_results))
       {
         while ($aura = $sqlc->fetch_assoc($a_results))
         {
-           	$output .= '
+                 $output .= '
                         <a style="padding:2px;" href="'.$spell_datasite.$aura['spell'].'" target="_blank">
                           <img src="'.spell_get_icon($aura['spell'], $sqlm).'" alt="'.$aura['spell'].'" width="24" height="24" />
                         </a>';
         }
       }
-	$output .= '
+      $output .= '
                       </div>
                     </td>
                     <td colspan="4">
@@ -292,106 +273,106 @@ function char_main(&$sqlr, &$sqlc)
                         - lvl '.char_get_level_color($char['level']).'
                       </font>
                       <br />'.get_map_name($char['map'], $sqlm).' - '.get_zone_name($char['zone'], $sqlm).'
-                      <br />'.$lang_char['honor_points'].': '.$Honor.' / '.$Arena.' - '.$lang_char['honor_kills'].': '.$HonorKill.'
+                      <br />'.$lang_char['honor_points'].': '.$char_data[CHAR_DATA_OFFSET_HONOR_POINTS].' / '.$char_data[CHAR_DATA_OFFSET_ARENA_POINTS].' - '.$lang_char['honor_kills'].': '.$char_data[CHAR_DATA_OFFSET_HONOR_KILL].'
                       <br />'.$lang_char['guild'].': '.$guild_name.' | '.$lang_char['rank'].': '.htmlentities($guild_rank).'
                       <br />'.(($char['online']) ? '<img src="img/up.gif" onmousemove="toolTip(\'Online\', \'item_tooltip\')" onmouseout="toolTip()" alt="online" />' : '<img src="img/down.gif" onmousemove="toolTip(\'Offline\', \'item_tooltip\')" onmouseout="toolTip()" alt="offline" />');
       if ($showcountryflag)
       {
         require_once 'libs/misc_lib.php';
-  	$country = misc_get_country_by_account($char['account'], $sqlr, $sqlm);
-  	$output .= ' - '.(($country['code']) ? '<img src="img/flags/'.$country['code'].'.png" onmousemove="toolTip(\''.($country['country']).'\', \'item_tooltip\')" onmouseout="toolTip()" alt="" />' : '-');
+        $country = misc_get_country_by_account($char['account'], $sqlr, $sqlm);
+        $output .= ' - '.(($country['code']) ? '<img src="img/flags/'.$country['code'].'.png" onmousemove="toolTip(\''.($country['country']).'\', \'item_tooltip\')" onmouseout="toolTip()" alt="" />' : '-');
         unset($country);
       }
-	$output .= '
+      $output .= '
                     </td>
                   </tr>
                   <tr>
                     <td width="6%">';
       if (($equiped_items[1][1]))
-  	$output .= '
+        $output .= '
                       <a style="padding:2px;" href="'.$item_datasite.$EQU_HEAD.'" target="_blank">
                         <img src="'.$equiped_items[1][1].'" class="'.$equiped_items[1][2].'" alt="Head" />
                       </a>';
       else
-  	$output .= '
+        $output .= '
                       <img src="img/INV/INV_empty_head.png" class="icon_border_0" alt="empty" />';
-	$output .= '
+      $output .= '
                     </td>
                     <td class="half_line" colspan="2" align="center" width="50%">
                       <div class="gradient_p">'.$lang_item['health'].':</div>
-                      <div class="gradient_pp">'.$MaxHealth.'</div>';
+                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_MAX_HEALTH].'</div>';
       if ($char['class'] == 11) //druid
-  	$output .= '
+        $output .= '
                       </br>
                       <div class="gradient_p">'.$lang_item['energy'].':</div>
-                      <div class="gradient_pp">'.$MaxEnergy.'/'.$Energy.'</div>';
-	$output .= '
+                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_ENERGY].'/'.$char_data[CHAR_DATA_OFFSET_MAX_ENERGY].'</div>';
+      $output .= '
                     </td>
                     <td class="half_line" colspan="2" align="center" width="50%">';
       if ($char['class'] == 1) // warrior
       {
-  	$output .= '
+        $output .= '
                       <div class="gradient_p">'.$lang_item['rage'].':</div>
-                      <div class="gradient_pp">'.$Rage.'/'.$MaxRage.'</div>';
+                      <div class="gradient_pp">'.$rage.'/'.$maxrage.'</div>';
       }
       elseif ($char['class'] == 4) // rogue
       {
-  	$output .= '
+        $output .= '
                       <div class="gradient_p">'.$lang_item['energy'].':</div>
-                      <div class="gradient_pp">'.$MaxEnergy.'/'.$Energy.'</div>';
+                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_ENERGY].'/'.$char_data[CHAR_DATA_OFFSET_MAX_ENERGY].'</div>';
       }
       elseif ($char['class'] == 6) // death knight
       {
         // Don't know if FOCUS is the right one need to verify with Death Knight player.
-  	$output .= '
+        $output .= '
                       <div class="gradient_p">'.$lang_item['runic'].':</div>
-                      <div class="gradient_pp">'.$Focus.'/'.$MaxFocus.'</div>';
+                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_FOCUS].'/'.$char_data[CHAR_DATA_OFFSET_MAX_FOCUS].'</div>';
       }
       elseif ($char['class'] == 11) // druid
       {
-  	$output .= '
+        $output .= '
                       <div class="gradient_p">'.$lang_item['mana'].':</div>
-                      <div class="gradient_pp">'.$MaxMana.'</div>
+                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_MAX_MANA].'</div>
                       </br>
                       <div class="gradient_p">'.$lang_item['rage'].':</div>
-                      <div class="gradient_pp">'.$Rage.'/'.$MaxRage.'</div>';
+                      <div class="gradient_pp">'.$rage.'/'.$maxrage.'</div>';
       }
       elseif ($char['class'] == 2 || // paladin
-        	$char['class'] == 3 || // hunter
-        	$char['class'] == 5 || // priest
-        	$char['class'] == 7 || // shaman
-        	$char['class'] == 8 || // mage
-        	$char['class'] == 9)   // warlock
+              $char['class'] == 3 || // hunter
+              $char['class'] == 5 || // priest
+              $char['class'] == 7 || // shaman
+              $char['class'] == 8 || // mage
+              $char['class'] == 9)   // warlock
       {
-  	$output .= '
+        $output .= '
                       <div class="gradient_p">'.$lang_item['mana'].':</div>
-                      <div class="gradient_pp">'.$MaxMana.'</div>';
+                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_MAX_MANA].'</div>';
       }
-	$output .= '
+      $output .= '
                     </td>
                     <td width="6%">';
       if (($equiped_items[10][1]))
-  	$output .= '
+        $output .= '
                       <a style="padding:2px;" href="'.$item_datasite.$EQU_GLOVES.'" target="_blank">
                         <img src="'.$equiped_items[10][1].'" class="'.$equiped_items[10][2].'" alt="Gloves" />
                       </a>';
       else
-  	$output .= '
+        $output .= '
                       <img src="img/INV/INV_empty_gloves.png" class="icon_border_0" alt="empty" />';
-	$output .= '
+      $output .= '
                     </td>
                   </tr>
                   <tr>
                     <td width="1%">';
       if (($equiped_items[2][1]))
-  	$output .= '
+        $output .= '
                       <a style="padding:2px;" href="'.$item_datasite.$EQU_NECK.'" target="_blank">
                         <img src="'.$equiped_items[2][1].'" class="'.$equiped_items[2][2].'" alt="Neck" />
                       </a>';
       else
-  	$output .= '
+        $output .= '
                       <img src="img/INV/INV_empty_neck.png" class="icon_border_0" alt="empty" />';
-	$output .= '
+      $output .= '
                     </td>
                     <td class="half_line" colspan="2" rowspan="3" align="center" width="50%">
                       <div class="gradient_p">
@@ -400,15 +381,15 @@ function char_main(&$sqlr, &$sqlc)
                         '.$lang_item['stamina'].':<br />
                         '.$lang_item['intellect'].':<br />
                         '.$lang_item['spirit'].':<br />
-                        '.$lang_item['armor'].':<br />
+                        '.$lang_item['armor'].':
                       </div>
                       <div class="gradient_pp">
-                        '.$Str.'<br />
-                        '.$Agi.'<br />
-                        '.$Sta.'<br />
-                        '.$Int.'<br />
-                        '.$Spi.'<br />
-                        '.$Armor.'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_STR].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_AGI].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_STA].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_INT].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_SPI].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_ARMOR].'
                       </div>
                     </td>
                     <td class="half_line" colspan="2" rowspan="3" align="center" width="50%">
@@ -418,88 +399,88 @@ function char_main(&$sqlr, &$sqlc)
                         '.$lang_item['res_fire'].':<br />
                         '.$lang_item['res_nature'].':<br />
                         '.$lang_item['res_frost'].':<br />
-                        '.$lang_item['res_shadow'].':<br />
+                        '.$lang_item['res_shadow'].':
                       </div>
                       <div class="gradient_pp">
-                        '.$Holy.'<br />
-                        '.$Arcane.'<br />
-                        '.$Fire.'<br />
-                        '.$Nature.'<br />
-                        '.$Frost.'<br />
-                        '.$Shadow.'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_RES_HOLY].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_RES_ARCANE].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_RES_FIRE].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_RES_NATURE].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_RES_FROST].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_RES_SHADOW].'
                       </div>
                     </td>
                     <td width="1%">';
       if (($equiped_items[6][1]))
-  	$output .= '
+        $output .= '
                       <a style="padding:2px;" href="'.$item_datasite.$EQU_BELT.'" target="_blank">
                         <img src="'.$equiped_items[6][1].'" class="'.$equiped_items[6][2].'" alt="Belt" />
                       </a>';
       else
-  	$output .= '
+        $output .= '
                       <img src="img/INV/INV_empty_waist.png" class="icon_border_0" alt="empty" />';
-	$output .= '
+      $output .= '
                     </td>
                   </tr>
                   <tr>
                     <td width="1%">';
       if (($equiped_items[3][1]))
-  	$output .= '
+        $output .= '
                       <a style="padding:2px;" href="'.$item_datasite.$EQU_SHOULDER.'" target="_blank">
                         <img src="'.$equiped_items[3][1].'" class="'.$equiped_items[3][2].'" alt="Shoulder" />
                       </a>';
       else
-  	$output .= '
+        $output .= '
                       <img src="img/INV/INV_empty_shoulder.png" class="icon_border_0" alt="empty" />';
-	$output .= '
+      $output .= '
                     </td>
                     <td width="1%">';
       if (($equiped_items[7][1]))
-  	$output .= '
+        $output .= '
                       <a style="padding:2px;" href="'.$item_datasite.$EQU_LEGS.'" target="_blank">
                         <img src="'.$equiped_items[7][1].'" class="'.$equiped_items[7][2].'" alt="Legs" />
                       </a>';
       else
-  	$output .= '
+        $output .= '
                       <img src="img/INV/INV_empty_legs.png" class="icon_border_0" alt="empty" />';
-	$output .= '
+      $output .= '
                     </td>
                   </tr>
                   <tr>
                     <td width="1%">';
       if (($equiped_items[15][1]))
-  	$output .= '
+        $output .= '
                       <a style="padding:2px;" href="'.$item_datasite.$EQU_BACK.'" target="_blank">
                         <img src="'.$equiped_items[15][1].'" class="'.$equiped_items[15][2].'" alt="Back" />
                       </a>';
       else
-  	$output .= '
+        $output .= '
                       <img src="img/INV/INV_empty_chest_back.png" class="icon_border_0" alt="empty" />';
-	$output .= '
+      $output .= '
                     </td>
                     <td width="1%">';
       if (($equiped_items[8][1]))
-  	$output .= '
+        $output .= '
                       <a style="padding:2px;" href="'.$item_datasite.$EQU_FEET.'" target="_blank">
                         <img src="'.$equiped_items[8][1].'" class="'.$equiped_items[8][2].'" alt="Feet" />
                       </a>';
       else
-  	$output .= '
+        $output .= '
                       <img src="img/INV/INV_empty_feet.png" class="icon_border_0" alt="empty" />';
-	$output .= '
+      $output .= '
                     </td>
                   </tr>
                   <tr>
                     <td width="1%">';
       if (($equiped_items[5][1]))
-  	$output .= '
+        $output .= '
                       <a style="padding:2px;" href="'.$item_datasite.$EQU_CHEST.'" target="_blank">
                         <img src="'.$equiped_items[5][1].'" class="'.$equiped_items[5][2].'" alt="Chest" />
                       </a>';
       else
-  	$output .= '
+        $output .= '
                       <img src="img/INV/INV_empty_chest_back.png" class="icon_border_0" alt="empty" />';
-	$output .= '
+      $output .= '
                     </td>
                     <td class="half_line" colspan="2" rowspan="2" align="center" width="50%">
                       <div class="gradient_p">
@@ -510,11 +491,11 @@ function char_main(&$sqlr, &$sqlc)
                         '.$lang_char['expertise'].':<br />
                       </div>
                       <div class="gradient_pp">
-                        '.$MinDmg.'-'.$MaxDmg.'<br />
-                        '.$MeleeDmg.'<br />
-                        '.$MeleeHit.'<br />
-                        '.$MeleeCrit.'%<br />
-                        '.$Expertise.'<br />
+                        '.$mindamage.'-'.$maxdamage.'<br />
+                        '.($char_data[CHAR_DATA_OFFSET_AP]+$char_data[CHAR_DATA_OFFSET_AP_MOD]).'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_MELEE_HIT].'<br />
+                        '.$crit.'%<br />
+                        '.$expertise.'<br />
                       </div>
                     </td>
                     <td class="half_line" colspan="2" rowspan="2" align="center" width="50%">
@@ -523,74 +504,74 @@ function char_main(&$sqlr, &$sqlc)
                         '.$lang_char['spell_heal'].':<br />
                         '.$lang_char['spell_hit'].':<br />
                         '.$lang_char['spell_crit'].':<br />
-                        '.$lang_char['spell_haste'].'<br />
+                        '.$lang_char['spell_haste'].'
                       </div>
                       <div class="gradient_pp">
-                        '.$SpellDmg.'<br />
-                        '.$SpellHeal.'<br />
-                        '.$SpellHit.'<br />
-                        '.$SpellCrit.'%<br />
-                        '.$SpellHaste.'<br />
+                        '.$spell_damage.'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_SPELL_HEAL].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_SPELL_HIT].'<br />
+                        '.$spell_crit.'%<br />
+                        '.$char_data[CHAR_DATA_OFFSET_SPELL_HASTE_RATING].'
                       </div>
                     </td>
                     <td width="1%">';
       if (($equiped_items[11][1]))
-  	$output .= '
+        $output .= '
                       <a style="padding:2px;" href="'.$item_datasite.$EQU_FINGER1.'" target="_blank">
                         <img src="'.$equiped_items[11][1].'" class="'.$equiped_items[11][2].'" alt="Finger1" />
                       </a>';
       else
-  	$output .= '
+        $output .= '
                       <img src="img/INV/INV_empty_finger.png" class="icon_border_0" alt="empty" />';
-	$output .= '
+      $output .= '
                     </td>
                   </tr>
                   <tr>
                     <td width="1%">';
       if (($equiped_items[4][1]))
-  	$output .= '
+        $output .= '
                       <a style="padding:2px;" href="'.$item_datasite.$EQU_SHIRT.'" target="_blank">
                         <img src="'.$equiped_items[4][1].'" class="'.$equiped_items[4][2].'" alt="Shirt" />
                       </a>';
       else
-  	$output .= '
+        $output .= '
                       <img src="img/INV/INV_empty_shirt.png" class="icon_border_0" alt="empty" />';
-	$output .= '
+      $output .= '
                     </td>
                     <td width="1%">';
       if (($equiped_items[12][1]))
-  	$output .= '
+        $output .= '
                       <a style="padding:2px;" href="'.$item_datasite.$EQU_FINGER2.'" target="_blank">
                         <img src="'.$equiped_items[12][1].'" class="'.$equiped_items[12][2].'" alt="Finger2" />
                       </a>';
       else $output .= '
                       <img src="img/INV/INV_empty_finger.png" class="icon_border_0" alt="empty" />';
-	$output .= '
+      $output .= '
                     </td>
                   </tr>
                   <tr>
                     <td width="1%">';
       if (($equiped_items[19][1]))
-  	$output .= '
+        $output .= '
                       <a style="padding:2px;" href="'.$item_datasite.$EQU_TABARD.'" target="_blank">
                         <img src="'.$equiped_items[19][1].'" class="'.$equiped_items[19][2].'" alt="Tabard" />
                       </a>';
       else $output .= '
                       <img src="img/INV/INV_empty_tabard.png" class="icon_border_0" alt="empty" />';
-	$output .= '
+      $output .= '
                     </td>
                     <td class="half_line" colspan="2" rowspan="2" align="center" width="50%">
                       <div class="gradient_p">
                         '.$lang_char['dodge'].':<br />
                         '.$lang_char['parry'].':<br />
                         '.$lang_char['block'].':<br />
-			'.$lang_char['resilience'].':<br />
+                        '.$lang_char['resilience'].':<br />
                       </div>
                       <div class="gradient_pp">
-                        '.$Dodge.'%<br />
-                        '.$Parry.'%<br />
-                        '.$Block.'%<br />
-                        '.$Resilience.'<br />
+                        '.$dodge.'%<br />
+                        '.$parry.'%<br />
+                        '.$block.'%<br />
+                        '.$char_data[CHAR_DATA_OFFSET_RESILIENCE].'<br />
                       </div>
                     </td>
                     <td class="half_line" colspan="2" rowspan="2" align="center" width="50%">
@@ -601,82 +582,82 @@ function char_main(&$sqlr, &$sqlc)
                         '.$lang_char['ranged_crit'].':<br />
                       </div>
                       <div class="gradient_pp">
-                        '.$MinRangedDmg.'-'.$MaxRangedDmg.'<br />
-                        '.$RangedDmg.'<br />
-                        '.$RangedHit.'<br />
-                        '.$RangedCrit.'%<br />
+                        '.$minrangeddamage.'-'.$maxrangeddamage.'<br />
+                        '.($char_data[CHAR_DATA_OFFSET_RANGED_AP]+$char_data[CHAR_DATA_OFFSET_RANGED_AP_MOD]).'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_RANGE_HIT].'<br />
+                        '.$ranged_crit.'%<br />
                       </div>
                     </td>
                     <td width="1%">';
       if (($equiped_items[13][1]))
-  	$output .= '
+        $output .= '
                       <a style="padding:2px;" href="'.$item_datasite.$EQU_TRINKET1.'" target="_blank">
                         <img src="'.$equiped_items[13][1].'" class="'.$equiped_items[13][2].'" alt="Trinket1" />
                       </a>';
       else
-  	$output .= '
+        $output .= '
                       <img src="img/INV/INV_empty_trinket.png" class="icon_border_0" alt="empty" />';
-	$output .= '
+      $output .= '
                     </td>
                   </tr>
                   <tr>
                     <td width="1%">';
       if (($equiped_items[9][1]))
-  	$output .= '
+        $output .= '
                       <a style="padding:2px;" href="'.$item_datasite.$EQU_WRIST.'" target="_blank">
                         <img src="'.$equiped_items[9][1].'" class="'.$equiped_items[9][2].'" alt="Wrist" />
                       </a>';
       else
-  	$output .= '
+        $output .= '
                       <img src="img/INV/INV_empty_wrist.png" class="icon_border_0" alt="empty" />';
-	$output .= '
+      $output .= '
                     </td>
                     <td width="1%">';
       if (($equiped_items[14][1]))
-  	$output .= '
+        $output .= '
                       <a style="padding:2px;" href="'.$item_datasite.$EQU_TRINKET2.'" target="_blank">
                         <img src="'.$equiped_items[14][1].'" class="'.$equiped_items[14][2].'" alt="Trinket2" />
                       </a>';
       else
-  	$output .= '
+        $output .= '
                       <img src="img/INV/INV_empty_trinket.png" class="icon_border_0" alt="empty" />';
-	$output .= '
+      $output .= '
                     </td>
                   </tr>
                   <tr>
                     <td></td>
                     <td width="15%">';
       if (($equiped_items[16][1]))
-  	$output .= '
+        $output .= '
                       <a style="padding:2px;" href="'.$item_datasite.$EQU_MAIN_HAND.'" target="_blank">
                         <img src="'.$equiped_items[16][1].'" class="'.$equiped_items[16][2].'" alt="MainHand" />
                       </a>';
       else
-  	$output .= '
+        $output .= '
                       <img src="img/INV/INV_empty_main_hand.png" class="icon_border_0" alt="empty" />';
-	$output .= '
+      $output .= '
                     </td>
                     <td width="15%">';
       if (($equiped_items[17][1]))
-  	$output .= '
+        $output .= '
                       <a style="padding:2px;" href="'.$item_datasite.$EQU_OFF_HAND.'" target="_blank">
                         <img src="'.$equiped_items[17][1].'" class="'.$equiped_items[17][2].'" alt="OffHand" />
                       </a>';
       else
-  	$output .= '
+        $output .= '
                       <img src="img/INV/INV_empty_off_hand.png" class="icon_border_0" alt="empty" />';
-	$output .= '
+      $output .= '
                     </td>
                     <td width="15%">';
       if (($equiped_items[18][1]))
-  	$output .= '
+        $output .= '
                       <a style="padding:2px;" href="'.$item_datasite.$EQU_RANGED.'" target="_blank">
                         <img src="'.$equiped_items[18][1].'" class="'.$equiped_items[18][2].'" alt="Ranged" />
                       </a>';
       else
-  	$output .= '
+        $output .= '
                       <img src="img/INV/INV_empty_ranged.png" class="icon_border_0" alt="empty" />';
-	$output .= '
+      $output .= '
                     </td>
                     <td width="15%"></td>
                     <td></td>
@@ -684,21 +665,21 @@ function char_main(&$sqlr, &$sqlc)
       if (($user_lvl > $owner_gmlvl)||($owner_name === $user_name))
       {
         //total time played
-  	$tot_time = $char['totaltime'];
-  	$tot_days = (int)($tot_time/86400);
-  	$tot_time = $tot_time - ($tot_days*86400);
-  	$total_hours = (int)($tot_time/3600);
-  	$tot_time = $tot_time - ($total_hours*3600);
-  	$total_min = (int)($tot_time/60);
+        $tot_time = $char['totaltime'];
+        $tot_days = (int)($tot_time/86400);
+        $tot_time = $tot_time - ($tot_days*86400);
+        $total_hours = (int)($tot_time/3600);
+        $tot_time = $tot_time - ($total_hours*3600);
+        $total_min = (int)($tot_time/60);
 
-  	$output .= '
+        $output .= '
                   <tr>
                     <td colspan="6">
                       '.$lang_char['tot_paly_time'].': '.$tot_days.' '.$lang_char['days'].' '.$total_hours.' '.$lang_char['hours'].' '.$total_min.' '.$lang_char['min'].'
                     </td>
                   </tr>';
       }
-	$output .= '
+      $output .= '
                 </table>
               </div>
               <br />
@@ -709,7 +690,7 @@ function char_main(&$sqlr, &$sqlc)
                 <td>';
                   // button to user account page, user account page has own security
                   makebutton($lang_char['chars_acc'], 'user.php?action=edit_user&amp;id='.$owner_acc_id.'', 130);
-	$output .= '
+      $output .= '
                 </td>
                 <td>';
 
@@ -718,7 +699,7 @@ function char_main(&$sqlr, &$sqlc)
       if ( ($user_lvl > $owner_gmlvl) && ($user_lvl >= $action_permission['delete']) )
       {
                   makebutton($lang_char['edit_button'], 'char_edit.php?id='.$id.'&amp;realm='.$realmid.'', 130);
-  	$output .= '
+        $output .= '
                 </td>
                 <td>';
       }
@@ -726,7 +707,7 @@ function char_main(&$sqlr, &$sqlc)
       if ( ( ($user_lvl > $owner_gmlvl) && ($user_lvl >= $action_permission['delete']) ) || ($owner_name === $user_name) )
       {
                   makebutton($lang_char['del_char'], 'char_list.php?action=del_char_form&amp;check%5B%5D='.$id.'" type="wrn', 130);
-  	$output .= '
+        $output .= '
                 </td>
                 <td>';
       }
@@ -734,12 +715,12 @@ function char_main(&$sqlr, &$sqlc)
       if ($user_lvl >= $action_permission['update'])
       {
                   makebutton($lang_char['send_mail'], 'mail.php?type=ingame_mail&amp;to='.$char['name'].'', 130);
-  	$output .= '
+        $output .= '
                 </td>
                 <td>';
       }
                   makebutton($lang_global['back'], 'javascript:window.history.back()" type="def', 130);
-	$output .= '
+      $output .= '
                 </td>
               </tr>
             </table>

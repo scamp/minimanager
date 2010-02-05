@@ -314,11 +314,11 @@ tr td div.gradient_p,div.gradient_pp{
 }
 tr td div.gradient_p{
 	background-color:#ddf8ff;
-	width: 130px;
+	width: 120px;
 }
 tr td div.gradient_pp{
 	background-color:#afccd3;
-	width: 50px;
+	width: 70px;
 }
 img.bag_icon {
 	float: left;
