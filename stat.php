@@ -93,11 +93,21 @@ function stats($action, &$sqlr, &$sqlc)
       unset($query);
 
       $data = date('Y-m-d H:i:s');
-      $data_1 = mktime(date('H'), date('i'), date('s'), date('m'), date('d')-1, date('Y'));
-      $data_1 = date('Y-m-d H:i:s', $data_1);
+      $data_1day = mktime(date('H'), date('i'), date('s'), date('m'), date('d')-1, date('Y'));
+      $data_1day = date('Y-m-d H:i:s', $data_1day);
+      $uniqueIPs = $sqlr->result($sqlr->query('select distinct count(last_ip) from account where last_login > \''.$data_1day.'\' and last_login < \''.$data.'\''), 0);
+   
+      $data_2day = mktime(date('H'), date('i'), date('s'), date('m'), date('d')-2, date('Y'));
+      $data_2day = date('Y-m-d H:i:s', $data_2day);
+      $uniqueIPs2 = $sqlr->result($sqlr->query('select distinct count(last_ip) from account where last_login > \''.$data_2day.'\' and last_login < \''.$data.'\''), 0);
+      
+      $data_1week = mktime(date('H'), date('i'), date('s'), date('m'), date('d')-7, date('Y'));
+      $data_1week = date('Y-m-d H:i:s', $data_1week);
+      $uniqueIPsWeek = $sqlr->result($sqlr->query('select distinct count(last_ip) from account where last_login > \''.$data_1week.'\' and last_login < \''.$data.'\''), 0);
 
-      $uniqueIPs = $sqlr->result($sqlr->query('select distinct count(last_ip) from account where last_login > \''.$data_1.'\' and last_login < \''.$data.'\''), 0);
       unset($data_1);
+      unset($data_2day);      
+      unset($data_1week);
       unset($data);
 
       $max_ever = $sqlr->result($sqlr->query('SELECT maxplayers FROM uptime WHERE realmid = '.$realm_id.' ORDER BY maxplayers DESC LIMIT 1'), 0);
@@ -128,6 +138,8 @@ function stats($action, &$sqlr, &$sqlc)
                           </td>
                           <td align="left">
                             '.$lang_stat['unique_ip'].':<br />
+                            '.$lang_stat['unique_ip2'].':<br />
+                            '.$lang_stat['unique_ipWeek'].':<br />
                             <br />
                             '.$lang_stat['max_players'].' :<br />
                             '.$lang_stat['max_ever'].' :<br />
@@ -135,6 +147,8 @@ function stats($action, &$sqlr, &$sqlc)
                           </td>
                           <td align="right">
                             '.$uniqueIPs.'<br />
+                            '.$uniqueIPs2.'<br />
+                            '.$uniqueIPsWeek.'<br />
                             <br />
                             <br />
                             '.$max_ever.'<br />

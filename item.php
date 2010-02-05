@@ -203,7 +203,7 @@ function search()
                   <td align=\"right\" colspan=\"3\">
                     <select name=\"itemset\">
                       <option value=\"\">{$lang_item_edit['all']}</option>";
-  $itemset_id = $sqlm->query("SELECT `itemsetID`, `name_loc0` FROM `dbc_itemset`");
+  $itemset_id = $sqlm->query("SELECT `id`, `field_1` FROM `dbc_itemset`");
   while($set = $sqlm->fetch_row($itemset_id))
     $output .= "
                       <option value=\"{$set[0]}\">($set[0]) {$set[1]}</option>";
