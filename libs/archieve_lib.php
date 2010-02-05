@@ -111,11 +111,12 @@ function achieve_get_icon($achieveid, &$sqlm)
 
   if ($displayid)
   {
-    $result = $sqlm->query('SELECT field_1 FROM dbc_spellicon WHERE id = '.$displayid.' LIMIT 1');
+    $result = $sqlm->query('SELECT name FROM dbc_spellicon WHERE id = '.$displayid.' LIMIT 1');
 
     if($result)
     {
-      $achieve = $sqlm->result($result, 0);
+      $achieve_uppercase = $sqlm->result($result, 0);
+	  $achieve = strtolower($achieve_uppercase);
 
       if ($achieve)
       {
@@ -183,14 +184,15 @@ function achieve_get_icon($achieveid, &$sqlm)
       $temp_string4 = substr($temp_string3, 1, strlen($temp_string3) - 2);
       $achieve_icon_name = $temp_string4;
 
-      $achieve = $achieve_icon_name;
+      $achieve_uppercase = $achieve_icon_name;
+	  $achieve = strtolower($achieve_uppercase);
     }
 
     if (file_exists(''.$item_icons.'/'.$achieve.'.jpg'))
     {
       if (filesize(''.$item_icons.'/'.$achieve.'.jpg') > 349)
       {
-        $sqlm->query('REPLACE INTO dbc_spellicon (id, field_1) VALUES (\''.$displayid.'\', \''.$achieve.'\')');
+        $sqlm->query('REPLACE INTO dbc_spellicon (id, name) VALUES (\''.$displayid.'\', \''.$achieve.'\')');
         return ''.$item_icons.'/'.$achieve.'.jpg';
       }
       else
@@ -231,7 +233,7 @@ function achieve_get_icon($achieveid, &$sqlm)
     {
       if (filesize(''.$item_icons.'/'.$achieve.'.jpg') > 349)
       {
-        $sqlm->query('REPLACE INTO dbc_spellicon (id, field_1) VALUES (\''.$displayid.'\', \''.$achieve.'\')');
+        $sqlm->query('REPLACE INTO dbc_spellicon (id, name) VALUES (\''.$displayid.'\', \''.$achieve.'\')');
         return ''.$item_icons.'/'.$achieve.'.jpg';
       }
       else
@@ -252,7 +254,7 @@ function achieve_get_icon($achieveid, &$sqlm)
     {
       if (filesize(''.$item_icons.'/'.$achieve.'.jpg') > 349)
       {
-        $sqlm->query('REPLACE INTO dbc_spellicon (id, field_1) VALUES (\''.$displayid.'\', \''.$achieve.'\')');
+        $sqlm->query('REPLACE INTO dbc_spellicon (id, name) VALUES (\''.$displayid.'\', \''.$achieve.'\')');
         return ''.$item_icons.'/'.$achieve.'.jpg';
       }
       else
