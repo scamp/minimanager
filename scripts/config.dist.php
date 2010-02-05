@@ -210,7 +210,7 @@ $anony_realm_id      =  1;          // guest account default realm
 //#############################################################################
 //---- Layout configuration ----
 
-$title               = 'MiniManager for Mangos/Trinity Server';
+$title               = 'MiniManager for Mangos Server';
 $itemperpage         =  25;
 $showcountryflag     =  true;
 
@@ -317,12 +317,12 @@ $menu_array = array
   array
   (                       '#',      'tools', array
     (
-      array(       'user.php',   'accounts', 0,5,5,5),
+      array(       'user.php',   'accounts', 1,5,5,5),
       array(  'char_list.php', 'characters', 0,5,5,5),
-      array(    'command.php',    'command', 0,5,5,5),
-      array(       'mail.php',       'mail', 0,5,5,5),
-      array(     'ticket.php',    'tickets', 0,5,5,5),
-      array(     'banned.php','banned_list', 0,5,5,5),
+      array(    'command.php',    'command', 1,5,5,5),
+      array(       'mail.php',       'mail', 1,5,5,5),
+      array(     'ticket.php',    'tickets', 2,5,5,5),
+      array(     'banned.php','banned_list', 3,5,5,5),
       array(    'cleanup.php',    'cleanup', 5,5,5,5),
       array(        'irc.php',        'irc', 0,5,5,5),
       array(  'bugreport.php',  'bugreport', 5,5,5,5),
@@ -333,23 +333,22 @@ $menu_array = array
     (
       array(     'events.php',     'events', 0,5,5,5),
       array(  'instances.php',  'instances', 0,5,5,5),
-      array(       'item.php',      'items', 0,5,5,5),
+      array(       'item.php',      'items', 1,5,5,5),
       array(   'creature.php',  'creatures', 5,5,5,5), // this page has yet to honor the new security system, please use with caution.
       array('game_object.php','game_object', 5,5,5,5), // this page has yet to honor the new security system, please use with caution.
-      array(       'tele.php',  'teleports', 0,5,5,5),
+      array(       'tele.php',  'teleports', 1,5,5,5),
       array(     'backup.php',     'backup', 5,5,5,5), // this page has yet to honor the new security system, please use with caution.
-      array(  'run_patch.php',  'run_patch', 0,5,5,5),
-      array(     'repair.php',     'repair', 0,5,5,5),
+      array(  'run_patch.php',  'run_patch', 3,5,5,5),
+      array(     'repair.php',     'repair', 3,5,5,5),
     ),
   ),
   array
   (                       '#',     'system', array
     (
-      array(      'realm.php',      'realm', 0,5,5,5),
-      array(       'motd.php',   'add_motd', 0,5,5,5),
-      array(     'spelld.php',     'spelld', 0,5,5,5),
-      array(    'message.php',    'message', 0,5,5,5),
-      array(        'ssh.php',   'ssh_line', 0,5,5,5),
+      array(      'realm.php',      'realm', 1,5,5,5),
+      array(       'motd.php',   'add_motd', 1,5,5,5),
+      array(    'message.php',    'message', 1,5,5,5),
+      array(        'ssh.php',   'ssh_line', 1,5,5,5),
     ),
   ),
   array
