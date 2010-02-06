@@ -84,8 +84,8 @@
   // links at footer
   $output .= '
                 <p>
-                  <a href="http://getmangos.com/" target="_blank"><img src="img/logo-mangos.png" class="logo_border" alt="mangos" /></a>';
-  $output .= '
+                  <a href="http://mangos.osh.nu/forums/index.php?app=uportal" target="_blank"><img src="img/logo-minimanager.png" class="logo_border" alt="minimanager" /></a>
+                  <a href="http://getmangos.com/" target="_blank"><img src="img/logo-mangos.png" class="logo_border" alt="mangos" /></a>
                   <a href="http://www.php.net/" target="_blank"><img src="img/logo-php.png" class="logo_border" alt="php" /></a>
                   <a href="http://www.mysql.com/" target="_blank"><img src="img/logo-mysql.png" class="logo_border" alt="mysql" /></a>
                   <a href="http://validator.w3.org/check?uri=referer" target="_blank"><img src="img/logo-css.png" class="logo_border" alt="w3" /></a>
