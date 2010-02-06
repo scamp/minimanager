@@ -172,23 +172,26 @@ function stats($action, &$sqlr, &$sqlc)
 // Total players in 24 Hours
 $horde1day = $sqlc->result($sqlc->query('SELECT count(guid) FROM characters WHERE race IN(2,5,6,8,10) AND account IN (SELECT account.id FROM realmd.account WHERE last_login > \''.$data_1day.'\')'));
 $allys1day = $sqlc->result($sqlc->query('SELECT count(guid) FROM characters WHERE race IN(1,3,4,7,11) AND account IN (SELECT account.id FROM realmd.account WHERE last_login > \''.$data_1day.'\')'));
-$day1total = $horde1day + $allys1day; 
-$horde1daytotal = round(($horde1day)/$day1total ,1);
-$allys1daytotal = round(($allys1day)/$day1total ,1);
+$day1total = $horde1day + $allys1day;
+if ($day1total == 0) { $day1total = 1; }
+$horde1daytotal = round(($horde1day)*100/$day1total ,1);
+$allys1daytotal = round(($allys1day)*100/$day1total ,1);
 
 // Total players in 48 Hours
 $horde2day = $sqlc->result($sqlc->query('SELECT count(guid) FROM characters WHERE race IN(2,5,6,8,10) AND account IN (SELECT account.id FROM realmd.account WHERE last_login > \''.$data_2day.'\')'));
 $allys2day = $sqlc->result($sqlc->query('SELECT count(guid) FROM characters WHERE race IN(1,3,4,7,11) AND account IN (SELECT account.id FROM realmd.account WHERE last_login > \''.$data_2day.'\')'));
 $day2total = $horde2day + $allys2day; 
-$horde2daytotal = round(($horde1day)/$day2total ,1);
-$allys2daytotal = round(($allys1day)/$day2total ,1);
+if ($day2total == 0) { $day2total = 1; }
+$horde2daytotal = round(($horde1day)*100/$day2total ,1);
+$allys2daytotal = round(($allys1day)*100/$day2total ,1);
 
 // Total players in 1 Week
 $horde1week = $sqlc->result($sqlc->query('SELECT count(guid) FROM characters WHERE race IN(2,5,6,8,10) AND account IN (SELECT account.id FROM realmd.account WHERE last_login > \''.$data_1week.'\')'));
 $allys1week = $sqlc->result($sqlc->query('SELECT count(guid) FROM characters WHERE race IN(1,3,4,7,11) AND account IN (SELECT account.id FROM realmd.account WHERE last_login > \''.$data_1week.'\')'));
 $week1total = $horde1week + $allys1week; 
-$horde1weektotal = round(($horde1week)/$week1total ,1);
-$allys1weektotal = round(($allys1week)/$week1total ,1);
+if ($week1total == 0) { $week1total = 1; }
+$horde1weektotal = round(($horde1week)*100/$week1total ,1);
+$allys1weektotal = round(($allys1week)*100/$week1total ,1);
 
 // Total players
 $horde_chars  = $sqlc->result($sqlc->query('SELECT count(guid) FROM characters WHERE race IN(2,5,6,8,10)'.(($action) ? ' AND online= 1' : '')), 0);
