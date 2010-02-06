@@ -105,11 +105,6 @@ function stats($action, &$sqlr, &$sqlc)
       $data_1week = date('Y-m-d H:i:s', $data_1week);
       $uniqueIPsWeek = $sqlr->result($sqlr->query('select distinct count(last_ip) from account where last_login > \''.$data_1week.'\' and last_login < \''.$data.'\''), 0);
 
-      unset($data_1);
-      unset($data_2day);      
-      unset($data_1week);
-      unset($data);
-
       $max_ever = $sqlr->result($sqlr->query('SELECT maxplayers FROM uptime WHERE realmid = '.$realm_id.' ORDER BY maxplayers DESC LIMIT 1'), 0);
       $max_restart = $sqlr->result($sqlr->query('SELECT maxplayers FROM uptime WHERE realmid = '.$realm_id.' ORDER BY starttime DESC LIMIT 1'), 0);
 
@@ -117,8 +112,8 @@ function stats($action, &$sqlr, &$sqlc)
 
       $output .= '
                       <table>
-                        <tr valign="top">
-                          <td align="left">
+                        <tr valign="top" align="center">
+                          <td align="left" width="210">
                             '.$lang_stat['uptime_prec'].':<br />
                             '.$lang_stat['avg_uptime'].':<br />
                             '.$lang_stat['max_uptime'].':<br />
@@ -126,16 +121,15 @@ function stats($action, &$sqlr, &$sqlc)
                             '.$lang_stat['tot_accounts'].':<br />
                             '.$lang_stat['tot_chars_on_realm'].':<br />
                           </td>
-                          <td align="right">
+                          <td align="left">
                             '.round($uptime[2],1).'%<br />
                             '.(int)($uptime[0]/60).':'.(int)(($uptime[0]%60)).'h<br />
                             '.(int)($uptime[1]/60).':'.(int)(($uptime[1]%60)).'h<br />
                             <br />
                             '.$total_acc.'<br />
-                             '.$total_chars.'<br />
+                            '.$total_chars.'<br />
                           </td>
-                          <td>&nbsp;&nbsp;
-                          </td>
+                         <td></td>
                           <td align="left">
                             '.$lang_stat['unique_ip'].':<br />
                             '.$lang_stat['unique_ip2'].':<br />
@@ -155,6 +149,7 @@ function stats($action, &$sqlr, &$sqlc)
                             '.$max_restart.'<br />
                           </td>
                         </tr>
+                        
                         <tr align="left">
                           <td colspan="2">
                             '.$lang_stat['average_of'].' '.round($total_chars/$total_acc,1).' '.$lang_stat['chars_per_acc'].'<br />
@@ -173,26 +168,80 @@ function stats($action, &$sqlr, &$sqlc)
       unset($total_acc);
     }
 
-    //there is always less hordies
-    $horde_chars  = $sqlc->result($sqlc->query('SELECT count(guid) FROM characters WHERE race IN(2,5,6,8,10)'.(($action) ? ' AND online= 1' : '')), 0);
-    $horde_pros   = round(($horde_chars*100)/$total_chars ,1);
-    $allies_chars = $total_chars - $horde_chars;
-    $allies_pros  = 100 - $horde_pros;
 
+// Total players in 24 Hours
+$horde1day = $sqlc->result($sqlc->query('SELECT count(guid) FROM characters WHERE race IN(2,5,6,8,10) AND account IN (SELECT account.id FROM realmd.account WHERE last_login > \''.$data_1day.'\')'));
+$allys1day = $sqlc->result($sqlc->query('SELECT count(guid) FROM characters WHERE race IN(1,3,4,7,11) AND account IN (SELECT account.id FROM realmd.account WHERE last_login > \''.$data_1day.'\')'));
+$day1total = $horde1day + $allys1day; 
+$horde1daytotal = round(($horde1day)/$day1total ,1);
+$allys1daytotal = round(($allys1day)/$day1total ,1);
+
+// Total players in 48 Hours
+$horde2day = $sqlc->result($sqlc->query('SELECT count(guid) FROM characters WHERE race IN(2,5,6,8,10) AND account IN (SELECT account.id FROM realmd.account WHERE last_login > \''.$data_2day.'\')'));
+$allys2day = $sqlc->result($sqlc->query('SELECT count(guid) FROM characters WHERE race IN(1,3,4,7,11) AND account IN (SELECT account.id FROM realmd.account WHERE last_login > \''.$data_2day.'\')'));
+$day2total = $horde2day + $allys2day; 
+$horde2daytotal = round(($horde1day)/$day2total ,1);
+$allys2daytotal = round(($allys1day)/$day2total ,1);
+
+// Total players in 1 Week
+$horde1week = $sqlc->result($sqlc->query('SELECT count(guid) FROM characters WHERE race IN(2,5,6,8,10) AND account IN (SELECT account.id FROM realmd.account WHERE last_login > \''.$data_1week.'\')'));
+$allys1week = $sqlc->result($sqlc->query('SELECT count(guid) FROM characters WHERE race IN(1,3,4,7,11) AND account IN (SELECT account.id FROM realmd.account WHERE last_login > \''.$data_1week.'\')'));
+$week1total = $horde1week + $allys1week; 
+$horde1weektotal = round(($horde1week)/$week1total ,1);
+$allys1weektotal = round(($allys1week)/$week1total ,1);
+
+// Total players
+$horde_chars  = $sqlc->result($sqlc->query('SELECT count(guid) FROM characters WHERE race IN(2,5,6,8,10)'.(($action) ? ' AND online= 1' : '')), 0);
+$horde_pros   = round(($horde_chars*100)/$total_chars ,1);
+$allies_chars = $total_chars - $horde_chars;
+$allies_pros  = 100 - $horde_pros;
+
+
+
+ 
     $output .= '
-                      <table class="tot_bar">
-                        <tr>
-                          <td width="'.$horde_pros.'%" background="img/bar_horde.gif" height="40"><a href="stat.php?action='.$action.'&amp;side=h">'.$lang_stat['horde'].': '.$horde_chars.' ('.$horde_pros.'%)</a></td>
-                          <td width="'.$allies_pros.'%" background="img/bar_allie.gif" height="40"><a href="stat.php?action='.$action.'&amp;side=a">'.$lang_stat['alliance'].': '.$allies_chars.' ('.$allies_pros.'%)</a></td>
-                        </tr>
-                      </table>
-                      <hr/>
-                    </td>
-                  </tr>';
+		<p align="center"><b>'.$lang_stat['acc_24'].'</b></p>
+		<table class="tot_bar">
+		<tr>
+		<td width="'.$horde1daytotal.'%" background="img/bar_horde.gif" height="30"><a href="stat.php?action='.$action.'&amp;side=h">'.$lang_stat['horde'].': '.$horde1day.' ('.$horde1daytotal.'%)</a></td>
+		<td width="'.$allys1daytotal.'%" background="img/bar_allie.gif" height="30"><a href="stat.php?action='.$action.'&amp;side=a">'.$lang_stat['alliance'].': '.$allys1day.' ('.$allys1daytotal.'%)</a></td>
+		</tr>
+		</table>
+
+		<p align="center"><b>'.$lang_stat['acc_48'].'</b></p>
+		<table class="tot_bar">
+		<tr>
+		<td width="'.$horde2daytotal.'%" background="img/bar_horde.gif" height="30"><a href="stat.php?action='.$action.'&amp;side=h">'.$lang_stat['horde'].': '.$horde2day.' ('.$horde2daytotal.'%)</a></td>
+		<td width="'.$allys2daytotal.'%" background="img/bar_allie.gif" height="30"><a href="stat.php?action='.$action.'&amp;side=a">'.$lang_stat['alliance'].': '.$allys2day.' ('.$allys2daytotal.'%)</a></td>
+		</tr>
+		</table>
+
+		<p align="center"><b>'.$lang_stat['acc_7'].'</b></p>
+		<table class="tot_bar">
+		<tr>
+		<td width="'.$horde1weektotal.'%" background="img/bar_horde.gif" height="30"><a href="stat.php?action='.$action.'&amp;side=h">'.$lang_stat['horde'].': '.$horde1week.' ('.$horde1weektotal.'%)</a></td>
+		<td width="'.$allys1weektotal.'%" background="img/bar_allie.gif" height="30"><a href="stat.php?action='.$action.'&amp;side=a">'.$lang_stat['alliance'].': '.$allys1week.' ('.$allys1weektotal.'%)</a></td>
+		</tr>
+		</table>
+
+		<p align="center"><b>'.$lang_stat['acc_total'].'</b></p>
+		<table class="tot_bar">
+		<tr>
+		<td width="'.$horde_pros.'%" background="img/bar_horde.gif" height="30"><a href="stat.php?action='.$action.'&amp;side=h">'.$lang_stat['horde'].': '.$horde_chars.' ('.$horde_pros.'%)</a></td>
+		<td width="'.$allies_pros.'%" background="img/bar_allie.gif" height="30"><a href="stat.php?action='.$action.'&amp;side=a">'.$lang_stat['alliance'].': '.$allies_chars.' ('.$allies_pros.'%)</a></td>
+		</tr>
+		</table>';
+        
     unset($horde_chars);
     unset($horde_pros);
     unset($allies_chars);
     unset($allies_pros);
+
+	unset($data_1);
+      unset($data_2day);      
+      unset($data_1week);
+      unset($data);
+
 
     $order_race = (isset($_GET['race'])) ? 'AND race ='.$sqlc->quote_smart($_GET['race']) : '';
     $order_class = (isset($_GET['class'])) ? 'AND class ='.$sqlc->quote_smart($_GET['class']) : '';
@@ -325,7 +374,7 @@ function stats($action, &$sqlr, &$sqlc)
                         <tr>';
     foreach ($level as $id)
     {
-      $height = ($level[$id[0]][4])*4;
+      $height = ($level[$id[0]][4])*3;
       $output .= '
                           <td><a href="stat.php?action='.$action.'&amp;level='.$id[1].'" class="graph_link">'.$level[$id[0]][4].'%<img src="themes/'.$theme.'/column.gif" width="77" height="'.$height.'" alt="'.$level[$id[0]][3].'" /></a></td>';
     }
