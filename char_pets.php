@@ -65,7 +65,7 @@ function char_pets(&$sqlr, &$sqlc)
                 <ul>';
           // selected char tab at last 
           $output .= '
-                  <li id="selected"><<a href="char_pets.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['pets'].'</a></li>';
+                  <li id="selected"><a href="char_pets.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['pets'].'</a></li>';
           $output .= '
               </ul>
             </div>
@@ -146,7 +146,6 @@ function char_pets(&$sqlr, &$sqlc)
       }
       $output .= '
               </div>
-            </div>
             </div>
             <br />
             <table class="hidden">
