@@ -60,20 +60,36 @@ function char_talent(&$sqlr, &$sqlc)
       $result = $sqlc->query('SELECT spell FROM character_spell WHERE guid = '.$id.' and active = 1 and disabled = 0 ORDER BY spell DESC');
       $output .= '
           <center>
+           <div id="tab_content">
               <div id="tab">
-              <ul>
-                <li><a href="char.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['char_sheet'].'</a></li>
-                <li><a href="char_inv.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['inventory'].'</a></li>
-                <li id="selected"><a href="char_talent.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['talents'].'</a></li>
-                <li><a href="char_achieve.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['achievements'].'</a></li>
-                <li><a href="char_quest.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['quests'].'</a></li>
-                <li><a href="char_friends.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['friends'].'</a></li>
+                <ul>
+                  <li><a href="char.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['char_sheet'].'</a></li>
+                  <li><a href="char_inv.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['inventory'].'</a></li>
+                  <li><a href="char_achieve.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['achievements'].'</a></li>
+                  <li><a href="char_rep.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['reputation'].'</a></li>
+                  <li><a href="char_skill.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['skills'].'</a></li>
+                  <li><a href="char_quest.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['quests'].'</a></li>';
+        if (char_get_class_name($char['class']) === 'Hunter' )
+          $output .= '
+                  <li><a href="char_pets.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['pets'].'</a></li>';
+          $output .= '
+                  <li><a href="char_friends.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['friends'].'</a></li>
+                </ul>
+                <ul>';
+          // selected char tab at last 
+          $output .= '
+                  <li id="selected"><a href="char_talent.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['talents'].'</a></li>';
+          $output .= '
               </ul>
             </div>
-            <div id="tab_content">
-              <font class="bold">'.htmlentities($char['name']).' -
-              <img src="img/c_icons/'.$char['race'].'-'.$char['gender'].'.gif" onmousemove="toolTip(\''.char_get_race_name($char['race']).'\', \'item_tooltip\')" onmouseout="toolTip()" alt="" />
-              <img src="img/c_icons/'.$char['class'].'.gif" onmousemove="toolTip(\''.char_get_class_name($char['class']).'\', \'item_tooltip\')" onmouseout="toolTip()" alt="" /> - lvl '.char_get_level_color($char['level']).'</font>
+            <div id="tab_content2">
+              <font class="bold">
+                '.htmlentities($char['name']).' -
+                <img src="img/c_icons/'.$char['race'].'-'.$char['gender'].'.gif"
+                  onmousemove="toolTip(\''.char_get_race_name($char['race']).'\', \'item_tooltip\')" onmouseout="toolTip()" alt="" />
+                <img src="img/c_icons/'.$char['class'].'.gif"
+                  onmousemove="toolTip(\''.char_get_class_name($char['class']).'\',\'item_tooltip\')" onmouseout="toolTip()" alt="" /> - lvl '.char_get_level_color($char['level']).'
+              </font>
               <br /><br />
               <table class="lined" style="width: 550px;">
                 <tr valign="top" align="center">';
@@ -247,6 +263,7 @@ function char_talent(&$sqlr, &$sqlc)
                 </tr>
               </table>
             </div>
+            </div>
             <br />
             <table class="hidden">
               <tr>
@@ -323,6 +340,11 @@ function talent_dependencies(&$tabs, &$tab, &$i, &$sqlm)
 //$action = (isset($_GET['action'])) ? $_GET['action'] : NULL;
 
 $lang_char = lang_char();
+
+$output .= '
+          <div class="top">
+            <h1>'.$lang_char['character'].'</h1>
+          </div>';
 
 // we getting links to realm database and character database left behind by header
 // header does not need them anymore, might as well reuse the link

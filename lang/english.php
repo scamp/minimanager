@@ -407,7 +407,7 @@ function lang_char()
     'send_mail' => 'Send InGame Mail',
     'del_char' => 'Delete Character',
     'no_char_found' => 'No Character Found!',
-    'char_sheet' => 'Character Sheet',
+    'char_sheet' => 'Sheet',
     'inventory' => 'Inventory',
     'reputation' => 'Reputation',
     'pets' => 'Pets',
