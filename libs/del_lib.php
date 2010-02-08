@@ -1,15 +1,12 @@
 <?php
 
-
 require_once 'tab_lib.php';
 
 //##########################################################################################
 //Delete character
 function del_char($guid, $realm)
 {
-  global $characters_db, $realm_db,
-    $user_lvl, $user_id,
-    $tab_del_user_characters;
+  global $characters_db, $realm_db, $user_lvl, $user_id, $tab_del_user_characters;
 
   $sqlr = new SQL;
   $sqlc = new SQL;
@@ -79,7 +76,9 @@ function del_acc($acc_id)
 
   if ( ($user_lvl > $gmlevel)||($acc_id == $user_id) )
   {
-    $sqlr->result($query, 0, 'active_realm_id'));
+    if ($sqlr->result($query, 0, 'active_realm_id'));
+    else
+    {
     foreach ($characters_db as $db)
     {
       $sqlc->connect($db['addr'], $db['user'], $db['pass'], $db['name']);
@@ -114,6 +113,7 @@ function del_acc($acc_id)
     if ($sqlr->affected_rows())
       return array(true, $del_char);
   }
+ }
   return array(false, $del_char);
 }
 
