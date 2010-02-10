@@ -56,9 +56,8 @@ function char_skill(&$sqlr, &$sqlc)
 
     if (($user_lvl > $owner_gmlvl)||($owner_name === $user_name))
     {
-      $result = $sqlc->query('SELECT data, name, race, class, level, gender FROM characters WHERE guid = '.$id.'');
+      $result = $sqlc->query('SELECT name, race, class, level, gender FROM characters WHERE guid = '.$id.'');
       $char = $sqlc->fetch_assoc($result);
-      $char_data = explode(' ',$char['data']);
 
       $output .= '
           <center>
@@ -121,47 +120,47 @@ function char_skill(&$sqlr, &$sqlc)
         385 => $lang_char['wise']
       );
 
+      $result = $sqlc->query('SELECT skill, value, max FROM character_skills WHERE guid = '.$id.'');
+
       $sqlm = new SQL;
       $sqlm->connect($mmfpm_db['addr'], $mmfpm_db['user'], $mmfpm_db['pass'], $mmfpm_db['name']);
 
-      for ($i = CHAR_DATA_OFFSET_SKILL_DATA; $i <= CHAR_DATA_OFFSET_SKILL_DATA+384 ; $i+=3)
+      while ($char_skill = $sqlc->fetch_assoc($result))
       {
-        if (($char_data[$i])&&(skill_get_name($char_data[$i] & 0x0000FFFF, $sqlm)))
-        {
-          $temp = unpack("S", pack("L", $char_data[$i+1]));
-          $skill = ($char_data[$i] & 0x0000FFFF);
+        $temp = $char_skill['value'];
+        $skill = $char_skill['skill'];
+        $max = $char_skill['max'];
 
-          if (skill_get_type($skill, $sqlm) == 6)
-          {
-            array_push($weapon_array , array(($user_lvl ? $skill : ''), skill_get_name($skill, $sqlm), $temp[1]));
-          }
-          elseif (skill_get_type($skill, $sqlm) == 7)
-          {
-            array_push($class_array , array(($user_lvl ? $skill : ''), skill_get_name($skill, $sqlm), $temp[1]));
-          }
-          elseif (skill_get_type($skill, $sqlm) == 8)
-          {
-            array_push($armor_array , array(($user_lvl ? $skill : ''), skill_get_name($skill, $sqlm), $temp[1]));
-          }
-          elseif (skill_get_type($skill, $sqlm) == 9)
-          {
-            array_push($prof_2_array , array(($user_lvl ? $skill : ''), skill_get_name($skill, $sqlm), $temp[1]));
-          }
-          elseif (skill_get_type($skill, $sqlm) == 10)
-          {
-            array_push($language_array , array(($user_lvl ? $skill : ''), skill_get_name($skill, $sqlm), $temp[1]));
-          }
-          elseif (skill_get_type($skill, $sqlm) == 11)
-          {
-            array_push($prof_1_array , array(($user_lvl ? $skill : ''), skill_get_name($skill, $sqlm), $temp[1]));
-          }
-          else
-          {
-            array_push($skill_array , array(($user_lvl ? $skill : ''), skill_get_name($skill, $sqlm), $temp[1]));
-          }
+		if (skill_get_type($skill, $sqlm) == 6)
+        {
+          array_push($weapon_array , array(($user_lvl ? $skill : ''), skill_get_name($skill, $sqlm), $temp, $max));
+        }
+        elseif (skill_get_type($skill, $sqlm) == 7)
+        {
+          array_push($class_array , array(($user_lvl ? $skill : ''), skill_get_name($skill, $sqlm), $temp, $max));
+        }
+        elseif (skill_get_type($skill, $sqlm) == 8)
+        {
+          array_push($armor_array , array(($user_lvl ? $skill : ''), skill_get_name($skill, $sqlm), $temp, $max));
+        }
+        elseif (skill_get_type($skill, $sqlm) == 9)
+        {
+          array_push($prof_2_array , array(($user_lvl ? $skill : ''), skill_get_name($skill, $sqlm), $temp, $max));
+        }
+        elseif (skill_get_type($skill, $sqlm) == 10)
+        {
+          array_push($language_array , array(($user_lvl ? $skill : ''), skill_get_name($skill, $sqlm), $temp, $max));
+        }
+        elseif (skill_get_type($skill, $sqlm) == 11)
+        {
+          array_push($prof_1_array , array(($user_lvl ? $skill : ''), skill_get_name($skill, $sqlm), $temp, $max));
+        }
+        else
+        {
+          array_push($skill_array , array(($user_lvl ? $skill : ''), skill_get_name($skill, $sqlm), $temp, $max));
         }
       }
-      unset($char_data);
+      unset($char_skill);
 
       aasort($skill_array, $order_by, $dir);
       aasort($class_array, $order_by, $dir);
@@ -173,13 +172,12 @@ function char_skill(&$sqlr, &$sqlc)
 
       foreach ($skill_array as $data)
       {
-        $max = ($data[2] < $char['level']*5) ? $char['level']*5 : $data[2];
         $output .= '
                   <tr>
                     '.($user_lvl ? '<td>'.$data[0].'</td>' : '').'
                     <td align="right">'.$data[1].'</td>
-                    <td valign="center" class="bar skill_bar" style="background-position: '.(round(450*$data[2]/$max)-450).'px;">
-                      <span>'.$data[2].'/'.$max.'</span>
+                    <td valign="center" class="bar skill_bar" style="background-position: '.(round(450*$data[2]/$data[3])-450).'px;">
+                      <span>'.$data[2].'/'.$data[3].'</span>
                     </td>
                   </tr>';
       }
@@ -189,7 +187,6 @@ function char_skill(&$sqlr, &$sqlc)
                   <tr><th class="title" colspan="'.($user_lvl ? '3' : '2').'" align="left">'.$lang_char['classskills'].'</th></tr>';
       foreach ($class_array as $data)
       {
-        $max = ($data[2] < $char['level']*5) ? $char['level']*5 : $data[2];
         $output .= '
                   <tr>
                     '.($user_lvl ? '<td>'.$data[0].'</td>' : '').'
@@ -204,13 +201,12 @@ function char_skill(&$sqlr, &$sqlc)
                   <tr><th class="title" colspan="'.($user_lvl ? '3' : '2').'" align="left">'.$lang_char['professions'].'</th></tr>';
       foreach ($prof_1_array as $data)
       {
-        $max = ($data[2]<76 ? 75 : ($data[2]<151 ? 150 : ($data[2]<226 ? 225 : ($data[2]<301 ? 300 : ($data[2]<376 ? 375 : ($data[2]<376 ? 375 : 450))))));
         $output .= '
                   <tr>
                     '.($user_lvl ? '<td>'.$data[0].'</td>' : '').'
                     <td align="right"><a href="'.$skill_datasite.'11.'.$data[0].'" target="_blank">'.$data[1].'</a></td>
-                    <td valign="center" class="bar skill_bar" style="background-position: '.(round(450*$data[2]/$max)-450).'px;">
-                      <span>'.$data[2].'/'.$max.' ('.$skill_rank_array[$max].')</span>
+                    <td valign="center" class="bar skill_bar" style="background-position: '.(round(450*$data[2]/$data[3])-450).'px;">
+                      <span>'.$data[2].'/'.$data[3].' ('.$skill_rank_array[$data[3]].')</span>
                     </td>
                   </tr>';
       }
@@ -220,13 +216,12 @@ function char_skill(&$sqlr, &$sqlc)
                   <tr><th class="title" colspan="'.($user_lvl ? '3' : '2').'" align="left">'.$lang_char['secondaryskills'].'</th></tr>';
       foreach ($prof_2_array as $data)
       {
-        $max = ($data[2]<76 ? 75 : ($data[2]<151 ? 150 : ($data[2]<226 ? 225 : ($data[2]<301 ? 300 : ($data[2]<376 ? 375 : ($data[2]<376 ? 375 : 450))))));
         $output .= '
                   <tr>
                     '.($user_lvl ? '<td>'.$data[0].'</td>' : '').'
                     <td align="right"><a href="'.$skill_datasite.'9.'.$data[0].'" target="_blank">'.$data[1].'</a></td>
-                    <td valign="center" class="bar skill_bar" style="background-position: '.(round(450*$data[2]/$max)-450).'px;">
-                      <span>'.$data[2].'/'.$max.' ('.$skill_rank_array[$max].')</span>
+                    <td valign="center" class="bar skill_bar" style="background-position: '.(round(450*$data[2]/$data[3])-450).'px;">
+                      <span>'.$data[2].'/'.$data[3].' ('.$skill_rank_array[$data[3]].')</span>
                     </td>
                   </tr>';
       }
@@ -236,13 +231,12 @@ function char_skill(&$sqlr, &$sqlc)
                   <tr><th class="title" colspan="'.($user_lvl ? '3' : '2').'" align="left">'.$lang_char['weaponskills'].'</th></tr>';
       foreach ($weapon_array as $data)
       {
-        $max = ($data[2] < $char['level']*5) ? $char['level']*5 : $data[2];
         $output .= '
                   <tr>
                     '.($user_lvl ? '<td>'.$data[0].'</td>' : '').'
                     <td align="right">'.$data[1].'</td>
-                    <td valign="center" class="bar skill_bar" style="background-position: '.(round(450*$data[2]/$max)-450).'px;">
-                      <span>'.$data[2].'/'.$max.'</span>
+                    <td valign="center" class="bar skill_bar" style="background-position: '.(round(450*$data[2]/$data[3])-450).'px;">
+                      <span>'.$data[2].'/'.$data[3].'</span>
                     </td>
                   </tr>';
       }
@@ -252,7 +246,6 @@ function char_skill(&$sqlr, &$sqlc)
                   <tr><th class="title" colspan="'.($user_lvl ? '3' : '2').'" align="left">'.$lang_char['armorproficiencies'].'</th></tr>';
       foreach ($armor_array as $data)
       {
-        $max = ($data[2] < $char['level']*5) ? $char['level']*5 : $data[2];
         $output .= '
                   <tr>
                     '.($user_lvl ? '<td>'.$data[0].'</td>' : '').'
@@ -267,13 +260,12 @@ function char_skill(&$sqlr, &$sqlc)
                   <tr><th class="title" colspan="'.($user_lvl ? '3' : '2').'" align="left">'.$lang_char['languages'].'</th></tr>';
       foreach ($language_array as $data)
       {
-        $max = ($data[2] < $char['level']*5) ? $char['level']*5 : $data[2];
         $output .= '
                   <tr>
                     '.($user_lvl ? '<td>'.$data[0].'</td>' : '').'
                     <td align="right">'.$data[1].'</td>
-                    <td valign="center" class="bar skill_bar" style="background-position: '.(round(450*$data[2]/$max)-450).'px;">
-                      <span>'.$data[2].'/'.$max.'</span>
+                    <td valign="center" class="bar skill_bar" style="background-position: '.(round(450*$data[2]/$data[3])-450).'px;">
+                      <span>'.$data[2].'/'.$data[3].'</span>
                     </td>
                   </tr>';
       }
