@@ -3,22 +3,21 @@
 
 require_once 'header.php';
 require_once 'libs/char_lib.php';
-require_once 'libs/item_lib.php';
+require_once 'libs/spell_lib.php';
 valid_login($action_permission['read']);
 
-//########################################################################################################################^M
-// SHOW CHARACTER EXTRA INV
-//########################################################################################################################^M
-function char_extra(&$sqlr, &$sqlc, &$sqlw)
+//########################################################################################################################
+// SHOW CHARACTERS QUESTS
+//########################################################################################################################
+function char_spell(&$sqlr, &$sqlc)
 {
   global $output, $lang_global, $lang_char,
-    $realm_id, $characters_db, $world_db,
+    $realm_id, $characters_db, $mmfpm_db,
     $action_permission, $user_lvl, $user_name,
-	$item_datasite;
+    $spell_datasite, $itemperpage;
   wowhead_tt();
 
-  if (empty($_GET['id']))
-    error($lang_global['empty_fields']);
+  if (empty($_GET['id'])) error($lang_global['empty_fields']);
 
   if (empty($_GET['realm']))
     $realmid = $realm_id;
@@ -32,10 +31,12 @@ function char_extra(&$sqlr, &$sqlc, &$sqlw)
   }
 
   $id = $sqlc->quote_smart($_GET['id']);
-  if (is_numeric($id));
-  else error($lang_global['empty_fields']);
+  if (is_numeric($id)); else $id = 0;
 
-  $result = $sqlc->query('SELECT account, name, race, class, gender, level
+  $start = (isset($_GET['start'])) ? $sqlc->quote_smart($_GET['start']) : 0;
+  if (is_numeric($start)); else $start=0;
+
+  $result = $sqlc->query('SELECT account, name, race, class, level, gender
     FROM characters WHERE guid = '.$id.' LIMIT 1');
 
   if ($sqlc->num_rows($result))
@@ -49,6 +50,9 @@ function char_extra(&$sqlr, &$sqlc, &$sqlw)
 
     if (($user_lvl > $owner_gmlvl)||($owner_name === $user_name))
     {
+      $all_record = $sqlc->result($sqlc->query('SELECT count(spell) FROM character_spell WHERE guid = '.$id.' and active = 1'), 0);
+      $result = $sqlc->query('SELECT spell FROM character_spell WHERE guid = '.$id.' and active = 1 order by spell ASC LIMIT '.$start.', '.$itemperpage.'');
+
       $output .= '
           <center>
            <div id="tab_content">
@@ -56,6 +60,7 @@ function char_extra(&$sqlr, &$sqlc, &$sqlw)
                 <ul>
                   <li><a href="char.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['char_sheet'].'</a></li>
                   <li><a href="char_inv.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['inventory'].'</a></li>
+                  <li><a href="char_extra.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['extra'].'</a></li>
                   '.(($char['level'] < 10) ? '' : '<li><a href="char_talent.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['talents'].'</a></li>').'
                   <li><a href="char_achieve.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['achievements'].'</a></li>
                   <li><a href="char_rep.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['reputation'].'</a></li>
@@ -66,12 +71,11 @@ function char_extra(&$sqlr, &$sqlc, &$sqlw)
                   <li><a href="char_pets.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['pets'].'</a></li>';
           $output .= '
                   <li><a href="char_friends.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['friends'].'</a></li>
-				  <li><a href="char_spell.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['spells'].'</a></li>
                 </ul>
                 <ul>';
           // selected char tab at last 
           $output .= '
-                  <li id="selected"><a href="char_extra.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['extra'].'</a></li>';
+                  <li id="selected"><a href="char_spell.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['spells'].'</a></li>';
           $output .= '
               </ul>
             </div>
@@ -83,50 +87,58 @@ function char_extra(&$sqlr, &$sqlc, &$sqlw)
                 <img src="img/c_icons/'.$char['class'].'.gif"
                   onmousemove="toolTip(\''.char_get_class_name($char['class']).'\',\'item_tooltip\')" onmouseout="toolTip()" alt="" /> - lvl '.char_get_level_color($char['level']).'
               </font>
-              <br /><br />
-                <table class="lined" style="width: 450px;">
-                  <tr>
-                    <th width="15%">'.$lang_char['icon'].'</th>
-                    <th width="15%">'.$lang_char['quantity'].'</th>
-                    <th width="70%">'.$lang_char['name'].'</th>
-                  </tr>
-                </table>';
+              <br /><br />';
 
-  $sqlw = new SQL;
-  $sqlw->connect($world_db[$realm_id]['addr'], $world_db[$realm_id]['user'], $world_db[$realm_id]['pass'], $world_db[$realm_id]['name']);
-			  
-  $result = $sqlw->query('SELECT entry, description FROM item_template WHERE BagFamily = 8192');
-    while($bag = $sqlw->fetch_assoc($result))
-    {
-      $result_2 = $sqlc->query('SELECT item, item_template FROM character_inventory WHERE guid = '.$id.' AND item_template = '.$bag['entry'].' ');
-        while ($char = $sqlc->fetch_assoc($result_2))
+      if ($sqlc->num_rows($result))
+      {
+        $output .= '
+              <table class="lined" style="width: 550px;">
+                <tr align="right">
+                  <td colspan="4">';
+        $output .= generate_pagination('char_spell.php?id='.$id.'&amp;realm='.$realmid.'&amp;start='.$start.'', $all_record, $itemperpage, $start);
+        $output .= '
+                  </td>
+                </tr>
+                <tr>
+                  <th>'.$lang_char['icon'].'</th>
+                  <th>'.$lang_char['name'].'</th>
+                  <th>'.$lang_char['icon'].'</th>
+                  <th>'.$lang_char['name'].'</th>
+                </tr>';
+
+        $sqlm = new SQL;
+        $sqlm->connect($mmfpm_db['addr'], $mmfpm_db['user'], $mmfpm_db['pass'], $mmfpm_db['name']);
+
+        while ($spell = $sqlc->fetch_assoc($result))
         {
-		
-		$result_3 = $sqlc->query('SELECT CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(`data`, " ", 15), " ", -1) AS UNSIGNED) AS item FROM item_instance WHERE guid = '.$char['item'].' ');
-		$items = $sqlc->fetch_row($result_3);
           $output .= '
-                <table class="lined" style="width: 450px;">
-                  <tr>
-                    <td width="15%">
-                      <a style="padding:2px;" href="'.$item_datasite.$char['item_template'].'" target="_blank">
-                        <img src="'.get_item_icon($char['item_template'], $sqlm).'" alt="'.$char['item_template'].'" class="icon_border_0" />
-                      </a>
-					</td>
-					
-					<td width="15%">
-					  '.$items['0'].'
-					</td>
-					<td width="70%">
-                      <span onmousemove="toolTip(\''.$bag['description'].'\', \'item_tooltip\')" onmouseout="toolTip()">'.get_item_name($char['item_template'], $sqlw).'</span>
-					</td>
-                  </tr>
-                </table>';
+                <tr>
+                  <td><a href="'.$spell_datasite.$spell['spell'].'"><img src="'.spell_get_icon($spell['spell'], $sqlm).'" class="icon_border_0" /></a></td>
+                  <td align="left"><a href="'.$spell_datasite.$spell['spell'].'">'.spell_get_name($spell['spell'], $sqlm).'</a></td>';
+          if($spell = $sqlc->fetch_assoc($result))
+            $output .='
+                  <td><a href="'.$spell_datasite.$spell['spell'].'"><img src="'.spell_get_icon($spell['spell'], $sqlm).'" class="icon_border_0" /></a></td>
+                  <td align="left"><a href="'.$spell_datasite.$spell['spell'].'">'.spell_get_name($spell['spell'], $sqlm).'</a></td>
+                </tr>';
+          else
+            $output .='
+                  <td></td>
+                  <td></td>
+                </tr>';
         }
-    }
-    unset($bag);
-
+        $output .= '
+                <tr align="right">
+                  <td colspan="4">';
+        $output .= generate_pagination('char_spell.php?id='.$id.'&amp;realm='.$realmid.'&amp;start='.$start.'', $all_record, $itemperpage, $start);
+        $output .= '
+                  </td>
+                </tr>
+              </table>';
+      }
+      //---------------Page Specific Data Ends here----------------------------
+      //---------------Character Tabs Footer-----------------------------------
       $output .= '
-              </div>
+            </div>
             </div>
             <br />
             <table class="hidden">
@@ -170,7 +182,7 @@ function char_extra(&$sqlr, &$sqlc, &$sqlw)
             </table>
             <br />
           </center>
-          <!-- end of char_pets.php -->';
+          <!-- end of char_spell.php -->';
     }
     else
       error($lang_char['no_permission']);
@@ -179,26 +191,17 @@ function char_extra(&$sqlr, &$sqlc, &$sqlw)
     error($lang_char['no_char_found']);
 
 }
-  unset($char);
+
 
 //########################################################################################################################
 // MAIN
 //########################################################################################################################
 
-// action variable reserved for future use
 //$action = (isset($_GET['action'])) ? $_GET['action'] : NULL;
 
-// load language
 $lang_char = lang_char();
 
-$output .= '
-          <div class="top">
-            <h1>'.$lang_char['character'].'</h1>
-          </div>';
-
-// we getting links to realm database and character database left behind by header
-// header does not need them anymore, might as well reuse the link
-char_extra($sqlr, $sqlc, $sqlw);
+char_spell($sqlr, $sqlc);
 
 //unset($action);
 unset($action_permission);

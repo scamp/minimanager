@@ -412,6 +412,7 @@ function lang_char()
     'reputation' => 'Reputation',
     'pets' => 'Pets',
 	'extra' => 'Extra',
+	'spells' => 'Spells',
     'bank_items' => 'Bank Items',
     'quests' => 'Quests',
     'no_act_quests' => 'No active Quests Found.',
