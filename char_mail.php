@@ -12,7 +12,7 @@ valid_login($action_permission['read']);
 //########################################################################################################################
 function char_mail(&$sqlr, &$sqlc)
 {
-  global $output, $lang_global, $lang_char,
+  global $output, $lang_global, $lang_char, $lang_mail,
     $realm_id, $realm_db, $mmfpm_db, $characters_db,
     $action_permission, $user_lvl, $user_name,
     $item_datasite, $itemperpage;
@@ -130,13 +130,13 @@ function char_mail(&$sqlr, &$sqlc)
               </table>
               <table class="lined" style="width: 100%">
                 <tr>
-                  <th width="5%">'.$lang_char['mail_type'].'</th>
-                  <th width="10%">'.$lang_char['sender'].'</th>
-                  <th width="15%">'.$lang_char['subject'].'</th>
-                  <th width="5%">'.$lang_char['has_items'].'</th>
-                  <th width="25%">'.$lang_char['text'].'</th>
-                  <th width="20%">'.$lang_char['money'].'</th>
-                  <th width="5%">'.$lang_char['checked'].'</th>
+                  <th width="5%">'.$lang_mail['mail_type'].'</th>
+                  <th width="10%">'.$lang_mail['sender'].'</th>
+                  <th width="15%">'.$lang_mail['subject'].'</th>
+                  <th width="5%">'.$lang_mail['has_items'].'</th>
+                  <th width="25%">'.$lang_mail['text'].'</th>
+                  <th width="20%">'.$lang_mail['money'].'</th>
+                  <th width="5%">'.$lang_mail['checked'].'</th>
                 </tr>';
 				
       while ($mail = $sqlc->fetch_assoc($query))
@@ -227,6 +227,7 @@ function char_mail(&$sqlr, &$sqlc)
 
 // load language
 $lang_char = lang_char();
+$lang_mail = lang_mail();
 
 $output .= '
           <div class="top">
@@ -240,6 +241,7 @@ char_mail($sqlr, $sqlc);
 //unset($action);
 unset($action_permission);
 unset($lang_char);
+unset($lang_mail);
 
 require_once 'footer.php';
 

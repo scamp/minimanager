@@ -491,13 +491,6 @@ function lang_char()
     'achievement_date' => 'Date',
     // ---- char_mail.php ----
 	'mail' => 'Mail',
-	'mail_type' => 'Mail Type',
-	'sender' => 'Sender',
-	'subject' => 'Subject',
-	'has_items' => 'Has Items',
-	'text' => 'Text',
-	'money' => 'Money',
-	'checked' => 'Checked',
   );
   return $lang_char;
 }
@@ -836,6 +829,13 @@ function lang_mail()
     'use_currect_option' => 'Some of the \'Group Send\' options can be used only with \'inGame mail\' or \'Email\' but not with both.',
     'send_mail' => 'Send Mail',
     'result' => 'InGame Mail Result',
+	'mail_on' => 'Ingame Mail',
+	'sender' => 'Sender',
+	'receiver' => 'Receiver',
+	'has_items' => 'Has Items',
+	'text' => 'Text',
+	'checked' => 'Checked',
+	'id' => 'ID',
   );
   return $lang_mail;
 }

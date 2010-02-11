@@ -319,6 +319,7 @@ $menu_array = array
       array(  'char_list.php', 'characters', 0,5,5,5),
       array(    'command.php',    'command', 0,5,5,5),
       array(       'mail.php',       'mail', 1,5,5,5),
+      array(    'mail_on.php',    'mail_on', 3,5,5,5),
       array(     'ticket.php',    'tickets', 2,5,5,5),
       array(     'banned.php','banned_list', 3,5,5,5),
       array(    'cleanup.php',    'cleanup', 5,5,5,5),
