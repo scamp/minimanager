@@ -77,6 +77,7 @@ function char_skill(&$sqlr, &$sqlc)
           $output .= '
                   <li><a href="char_friends.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['friends'].'</a></li>
 				  <li><a href="char_spell.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['spells'].'</a></li>
+				  <li><a href="char_mail.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['mail'].'</a></li>
                 </ul>
                 <ul>';
           // selected char tab at last 

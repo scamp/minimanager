@@ -97,6 +97,7 @@ function char_friends(&$sqlr, &$sqlc)
                   <li><a href="char_pets.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['pets'].'</a></li>';
           $output .= '
 				  <li><a href="char_spell.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['spells'].'</a></li>
+				  <li><a href="char_mail.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['mail'].'</a></li>
                 </ul>
                 <ul>';
           // selected char tab at last 

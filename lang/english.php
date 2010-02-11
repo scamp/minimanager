@@ -489,6 +489,15 @@ function lang_char()
     'achievement_title' => 'Achievement Title',
     'achievement_points' => 'Points',
     'achievement_date' => 'Date',
+    // ---- char_mail.php ----
+	'mail' => 'Mail',
+	'mail_type' => 'Mail Type',
+	'sender' => 'Sender',
+	'subject' => 'Subject',
+	'has_items' => 'Has Items',
+	'text' => 'Text',
+	'money' => 'Money',
+	'checked' => 'Checked',
   );
   return $lang_char;
 }
