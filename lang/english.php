@@ -411,6 +411,7 @@ function lang_char()
     'inventory' => 'Inventory',
     'reputation' => 'Reputation',
     'pets' => 'Pets',
+	'extra' => 'Extra',
     'bank_items' => 'Bank Items',
     'quests' => 'Quests',
     'no_act_quests' => 'No active Quests Found.',
@@ -430,6 +431,8 @@ function lang_char()
     'skill_value' => 'Value',
     'talents' => 'Talents',
     'showhide' => 'show/hide',
+    'icon' => 'Icon',
+    'quantity' => 'Quantity',
     // ----char_talents.php----
     'talent_rate' => 'Talent Rate',
     'talent_points' => 'Talent Points',

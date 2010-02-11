@@ -362,6 +362,7 @@ $menu_array = array
       array(    'char_rep.php', 'character', 0,5,5,5),
       array(   'char_pets.php', 'character', 0,5,5,5),
       array('char_friends.php', 'character', 0,5,5,5),
+      array(  'char_extra.php', 'character', 0,5,5,5),
       array(   'char_edit.php', 'char_edit', 0,5,5,5),
       array(        'edit.php', 'myaccount', 0,5,5,5),
       array(       'index.php', 'startpage',-1,5,5,5),
