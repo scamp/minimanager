@@ -112,7 +112,6 @@ $tab_del_user_characters = Array
   Array('corpse','player'),
   Array('groups','leaderGuid'),
   Array('group_member','memberGuid'),
-  Array('group_member','groupId'),
   Array('group_instance','leaderGuid'),
   Array('guild_bank_eventlog','PlayerGuid'),
   Array('guild_eventlog','PlayerGuid2'),
