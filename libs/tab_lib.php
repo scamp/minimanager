@@ -81,9 +81,13 @@ $tab_del_user_char = Array
 //list of tables in realmd db you need to backup data on single user backup
 $tab_backup_user_realmd = $tab_del_user_realmd;
 
+// characters table needs to be separated from the tother tables cos of orphan clen up
+$tab_del_user_characters_table = Array
+(
+  Array('characters','guid'),
+);
 
-//list of tables in characters db you need to delete data from on user deletion
-$tab_del_user_characters = Array
+$tab_del_user_other_tables = Array
 (
   Array('arena_team_member','guid'),
   Array('auctionhouse','itemowner'),
@@ -123,12 +127,42 @@ $tab_del_user_characters = Array
   Array('petition','ownerguid'),
   Array('petition_sign','ownerguid'),
   Array('petition_sign','playerguid'),
-  Array('characters','guid'),
 );
 
+//list of tables in characters db you need to delete data from on user deletion
+$tab_del_user_characters = $tab_del_user_characters_table + $tab_del_user_other_tables;
 
 //list of tables in characters db you need to backup data from on single user backup
 $tab_backup_user_characters = $tab_del_user_characters;
+
+//list of extra pet tables in characters db you need to delete data from on orphan deletion
+$tab_del_pet = Array
+(
+  Array('pet_aura','guid'),
+  Array('pet_spell','guid'),
+  Array('pet_spell_cooldown','guid'),
+);
+
+//list of tables in characters db while you delete guild
+$tab_del_guild = Array
+(
+  Array('guild_bank_item','guildid'),
+  Array('guild_bank_eventlog','guildid'),
+  Array('guild_bank_right','guildid'),
+  Array('guild_bank_tab','guildid'),
+  Array('guild_eventlog','guildid'),
+  Array('guild_rank','guildid'),
+  Array('guild_member','guildid'),
+  Array('guild','guildid'),
+);
+
+//list of tables in characters db while you delete arena teams
+$tab_del_arena = Array
+(
+  Array('arena_team','arenateamid'),
+  Array('arena_team_stats','arenateamid'),
+  Array('arena_team_member','arenateamid'),
+);
 
 
 ?>
