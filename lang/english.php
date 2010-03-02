@@ -122,6 +122,7 @@ function lang_guild()
     'guild_id' => 'Guild id',
     'guild_search_result' => 'Guilds Search Results',
     'guildbank' => 'Guild Bank',
+    'members' => 'Members',
   );
   return $lang_guild;
 }

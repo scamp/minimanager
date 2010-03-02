@@ -128,7 +128,7 @@ $output .= '
 <tr>
 	<td class="hidden" align="right">
 		'.substr($bank_gold,  0, -4).'<img src="img/gold.gif" alt="" align="middle" />
-		'.substr($bank_gold, -4,  2).'<img src="img/silver.gif" alt="" align="middle" />
+		'.substr($bank_gold, -4,  -2).'<img src="img/silver.gif" alt="" align="middle" />
 		'.substr($bank_gold, -2).'<img src="img/copper.gif" alt="" align="middle" />
 	</td>
 </tr>

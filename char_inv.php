@@ -289,7 +289,7 @@ function char_inv(&$sqlr, &$sqlc)
                     <div style="text-align:right;width:168px;background-image:none;background-color:#393936;padding:2px;">
                       <b>
                         '.substr($char['money'],  0, -4).'<img src="img/gold.gif" alt="" align="middle" />
-                        '.substr($char['money'], -4,  2).'<img src="img/silver.gif" alt="" align="middle" />
+                        '.substr($char['money'], -4, -2).'<img src="img/silver.gif" alt="" align="middle" />
                         '.substr($char['money'], -2).'<img src="img/copper.gif" alt="" align="middle" />
                       </b>
                     </div>

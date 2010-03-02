@@ -295,18 +295,27 @@ function view_guild()
     FROM guild WHERE guildid = '$guild_id'");
   $guild_data = $sqlc->fetch_row($query);
 
+$output .= "
+<center>
+	<div id=\"tab_content\">
+		<div id=\"tab\">
+			<ul>
+				<li id=\"selected\"><a href=\"guild.php?action=view_guild&amp;realm=$realmid&amp;error=3&amp;id=$guild_data[0]\">".$lang_guild['members']."</a></li>
+				<li><a href=\"guildbank.php?id=$guild_id&amp;realm=$realmid\">".$lang_guild['guildbank']."</a></li>
+			</ul>
+		</div>
+";
+
   $output .= "
         <script type=\"text/javascript\">
           answerbox.btn_ok='{$lang_global['yes']}';
           answerbox.btn_cancel='{$lang_global['no']}';
         </script>
-        <center>
-          <fieldset>
-            <legend>{$lang_guild['guild']}</legend>
-            <table class=\"hidden\" style=\"width: 100%;\">
+		<div id=\"tab_content2\">
+			<table class=\"hidden\" style=\"width: 100%;\">
               <tr>
                 <td>
-                  <table class=\"lined\">
+                  <table class=\"lined\"style=\"width: 100%;\">
                     <tr>
                       <td width=\"25%\"><b>{$lang_guild['create_date']}:</b><br />".date('o-m-d', $guild_data[4])."</td>
                       <td width=\"50%\" class=\"bold\">$guild_data[1]</td>
@@ -331,17 +340,17 @@ function view_guild()
               </tr>
               <tr>
                 <td>
-                  <table class=\"lined\">
+                  <table class=\"lined\" style=\"width: 100%;\">
                     <tr>
                       <th width=\"1%\">{$lang_guild['remove']}</th>
-                      <th width=\"15%\"><a href=\"guild.php?action=view_guild&amp;error=3&amp;realm=$realmid&amp;id=$guild_id&amp;order_by=cname&amp;start=$start&amp;dir=$dir\">".($order_by=='cname' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" alt=\"\" /> " : "")."{$lang_guild['name']}</a></th>
+                      <th width=\"20%\"><a href=\"guild.php?action=view_guild&amp;error=3&amp;realm=$realmid&amp;id=$guild_id&amp;order_by=cname&amp;start=$start&amp;dir=$dir\">".($order_by=='cname' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" alt=\"\" /> " : "")."{$lang_guild['name']}</a></th>
                       <th width=\"1%\"><a href=\"guild.php?action=view_guild&amp;error=3&amp;realm=$realmid&amp;id=$guild_id&amp;order_by=crace&amp;start=$start&amp;dir=$dir\">".($order_by=='crace' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" alt=\"\" /> " : "")."{$lang_guild['race']}</a></th>
                       <th width=\"1%\"><a href=\"guild.php?action=view_guild&amp;error=3&amp;realm=$realmid&amp;id=$guild_id&amp;order_by=class&amp;start=$start&amp;dir=$dir\">".($order_by=='cclass' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" alt=\"\" /> " : "")."{$lang_guild['class']}</a></th>
                       <th width=\"1%\"><a href=\"guild.php?action=view_guild&amp;error=3&amp;realm=$realmid&amp;id=$guild_id&amp;order_by=clevel&amp;start=$start&amp;dir=$dir\">".($order_by=='clevel' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" alt=\"\" /> " : "")."{$lang_guild['level']}</a></th>
-                      <th width=\"15%\"><a href=\"guild.php?action=view_guild&amp;error=3&amp;realm=$realmid&amp;id=$guild_id&amp;order_by=mrank&amp;start=$start&amp;dir=$dir\">".($order_by=='mrank' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" alt=\"\" /> " : "")."{$lang_guild['rank']}</a></th>
-                      <th width=\"15%\">{$lang_guild['pnote']}</th>
-                      <th width=\"15%\">{$lang_guild['offnote']}</th>
-                      <th width=\"15%\"><a href=\"guild.php?action=view_guild&amp;error=3&amp;realm=$realmid&amp;id=$guild_id&amp;order_by=clogout&amp;start=$start&amp;dir=$dir\">".($order_by=='clogout' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" alt=\"\" /> " : "")."{$lang_guild['llogin']}</a></th>
+                      <th width=\"23%\"><a href=\"guild.php?action=view_guild&amp;error=3&amp;realm=$realmid&amp;id=$guild_id&amp;order_by=mrank&amp;start=$start&amp;dir=$dir\">".($order_by=='mrank' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" alt=\"\" /> " : "")."{$lang_guild['rank']}</a></th>
+                      <th width=\"25%\">{$lang_guild['pnote']}</th>
+                      <th width=\"25%\">{$lang_guild['offnote']}</th>
+                      <th width=\"1%\"><a href=\"guild.php?action=view_guild&amp;error=3&amp;realm=$realmid&amp;id=$guild_id&amp;order_by=clogout&amp;start=$start&amp;dir=$dir\">".($order_by=='clogout' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" alt=\"\" /> " : "")."{$lang_guild['llogin']}</a></th>
                       <th width=\"1%\"><a href=\"guild.php?action=view_guild&amp;error=3&amp;realm=$realmid&amp;id=$guild_id&amp;order_by=conline&amp;start=$start&amp;dir=$dir\">".($order_by=='conline' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" alt=\"\" /> " : "")."{$lang_guild['online']}</a></th>";
 
   if ($showcountryflag)
@@ -410,6 +419,8 @@ function view_guild()
                 <td align=\"right\">".generate_pagination("guild.php?action=view_guild&amp;error=3&amp;realm=$realmid&amp;id=$guild_id&amp;order_by=$order_by&amp;dir=".!$dir, $guildmemberCount, $itemperpage, $start)."</td>
               </tr>
             </table>
+		</div>
+	</div>
             <br />";
   $output .= "
             <table class=\"hidden\">
@@ -422,17 +433,12 @@ function view_guild()
                 </td>
                 <td>";
   }
-                  makebutton($lang_guild['guildbank'], "guildbank.php?id=$guild_id&amp;realm=$realmid", 130);
-  $output .= "
-                </td>
-                <td>";
                   makebutton($lang_guild['show_guilds'], "guild.php?realm=$realmid\" type=\"def", 130);
   $output .= "
                 </td>
               </tr>
             </table>
-          </fieldset>
-        </center>
+	</center>
 ";
 }
 
@@ -585,9 +591,9 @@ switch ($err)
           <h1><font class=\"error\">{$lang_global['err_no_permission']}:</font></h1>";
     break;
   default: //no error
+}
     $output .= "
           <h1>{$lang_guild['browse_guilds']}</h1>";
-}
 
 unset($err);
 
