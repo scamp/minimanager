@@ -40,10 +40,10 @@ function top100($realmid, &$sqlr, &$sqlc)
   $all_record = $sqlc->result($result, 0);
   $all_record = (($all_record < 100) ? $all_record : 100);
 
-  $result = $sqlc->query('SELECT guid, name, race, class, gender, level, totaltime, online, money,
+  $result = $sqlc->query('SELECT guid, name, race, class, gender, level, totaltime, online, money, health,
+							power1,
+							arenaPoints as arena, totalHonorPoints as honor, totalKills as kills, 
     CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_GUILD_ID+1).'),          " ", -1) AS UNSIGNED) as gname,
-    CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_MAX_HEALTH+1).'),        " ", -1) AS UNSIGNED) AS health,
-    CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_MAX_MANA+1).'),          " ", -1) AS UNSIGNED) AS mana,
     CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_STR+1).'),               " ", -1) AS UNSIGNED) AS str,
     CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_AGI+1).'),               " ", -1) AS UNSIGNED) AS agi,
     CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_STA+1).'),               " ", -1) AS UNSIGNED) AS sta,
@@ -73,10 +73,7 @@ function top100($realmid, &$sqlr, &$sqlc)
     CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_RANGE_CRIT+1).'),        " ", -1) AS UNSIGNED) AS range_crit,
     CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_MELEE_HIT+1).'),         " ", -1) AS UNSIGNED) AS melee_hit,
     CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_RANGE_HIT+1).'),         " ", -1) AS UNSIGNED) AS range_hit,
-    CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_SPELL_HIT+1).'),         " ", -1) AS UNSIGNED) AS spell_hit,
-    CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_HONOR_POINTS+1).'),      " ", -1) AS UNSIGNED) AS honor,
-    CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_HONOR_KILL+1).'),        " ", -1) AS UNSIGNED) AS kills,
-    CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_ARENA_POINTS+1).'),      " ", -1) AS UNSIGNED) AS arena
+    CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_SPELL_HIT+1).'),         " ", -1) AS UNSIGNED) AS spell_hit
     FROM characters ORDER BY '.$order_by.' '.$order_dir.' LIMIT '.$start.', '.$itemperpage.'');
 
 
@@ -177,7 +174,7 @@ function top100($realmid, &$sqlr, &$sqlc)
   {
     $output .= '
                 <th width="11%"><a href="top100.php?type='.$type.'&amp;order_by=health&amp;start='.$start.'&amp;dir='.$dir.'"'.($order_by==='health' ? ' class="'.$order_dir.'"' : '').'>'.$lang_top['health'].'</a></th>
-                <th width="10%"><a href="top100.php?type='.$type.'&amp;order_by=mana&amp;start='.$start.'&amp;dir='.$dir.'"'.($order_by==='mana' ? ' class="'.$order_dir.'"' : '').'>'.$lang_top['mana'].'</a></th>
+                <th width="10%"><a href="top100.php?type='.$type.'&amp;order_by=power1&amp;start='.$start.'&amp;dir='.$dir.'"'.($order_by==='power1' ? ' class="'.$order_dir.'"' : '').'>'.$lang_top['mana'].'</a></th>
                 <th width="9%"><a href="top100.php?type='.$type.'&amp;order_by=str&amp;start='.$start.'&amp;dir='.$dir.'"'.($order_by==='str' ? ' class="'.$order_dir.'"' : '').'>'.$lang_top['str'].'</a></th>
                 <th width="8%"><a href="top100.php?type='.$type.'&amp;order_by=agi&amp;start='.$start.'&amp;dir='.$dir.'"'.($order_by==='agi' ? ' class="'.$order_dir.'"' : '').'>'.$lang_top['agi'].'</a></th>
                 <th width="8%"><a href="top100.php?type='.$type.'&amp;order_by=sta&amp;start='.$start.'&amp;dir='.$dir.'"'.($order_by==='sta' ? ' class="'.$order_dir.'"' : '').'>'.$lang_top['sta'].'</a></th>
@@ -269,7 +266,7 @@ function top100($realmid, &$sqlr, &$sqlc)
     {
       $output .= '
                 <td>'.$char['health'].'</td>
-                <td>'.$char['mana'].'</td>
+                <td>'.$char['power1'].'</td>
                 <td>'.$char['str'].'</td>
                 <td>'.$char['agi'].'</td>
                 <td>'.$char['sta'].'</td>

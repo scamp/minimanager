@@ -70,8 +70,12 @@ function char_main(&$sqlr, &$sqlc)
 
     if ($user_lvl >= $owner_gmlvl && (($side_v === $side_p) || !$side_v))
     {
-      $result = $sqlc->query('SELECT data, name, race, class, level, zone, map, online, totaltime, gender,
-        account FROM characters WHERE guid = '.$id.'');
+      $result = $sqlc->query('SELECT account, data, name, race, class, gender, level, zone, map, online, totaltime, 
+									arenaPoints, totalHonorPoints, totalKills, 
+									health, 
+									power1, power2, power3, power4, power5, power6, power7
+								FROM characters 
+								WHERE guid = '.$id.'');
       $char = $sqlc->fetch_assoc($result);
       $char_data = explode(' ',$char['data']);
 
@@ -125,8 +129,7 @@ function char_main(&$sqlr, &$sqlc)
         $spell_damage = $char_data[CHAR_DATA_OFFSET_SPELL_DAMAGE+1+$i];
       }
 
-      $rage       = round($char_data[CHAR_DATA_OFFSET_RAGE] / 10);
-      $maxrage    = round($char_data[CHAR_DATA_OFFSET_MAX_RAGE] / 10);
+      $rage       = round($char['power2'] / 10);
       $expertise  = ''.$char_data[CHAR_DATA_OFFSET_EXPERTISE].' / '.$char_data[CHAR_DATA_OFFSET_OFFHAND_EXPERTISE].'';
 
       $EQU_HEAD      = $char_data[CHAR_DATA_OFFSET_EQU_HEAD];
@@ -277,7 +280,7 @@ function char_main(&$sqlr, &$sqlc)
                         - lvl '.char_get_level_color($char['level']).'
                       </font>
                       <br />'.get_map_name($char['map'], $sqlm).' - '.get_zone_name($char['zone'], $sqlm).'
-                      <br />'.$lang_char['honor_points'].': '.$char_data[CHAR_DATA_OFFSET_HONOR_POINTS].' / '.$char_data[CHAR_DATA_OFFSET_ARENA_POINTS].' - '.$lang_char['honor_kills'].': '.$char_data[CHAR_DATA_OFFSET_HONOR_KILL].'
+                      <br />'.$lang_char['honor_points'].': '.$char['totalHonorPoints'].' / '.$char['arenaPoints'].' - '.$lang_char['honor_kills'].': '.$char['totalKills'].'
                       <br />'.$lang_char['guild'].': '.$guild_name.' | '.$lang_char['rank'].': '.htmlentities($guild_rank).'
                       <br />'.(($char['online']) ? '<img src="img/up.gif" onmousemove="toolTip(\'Online\', \'item_tooltip\')" onmouseout="toolTip()" alt="online" />' : '<img src="img/down.gif" onmousemove="toolTip(\'Offline\', \'item_tooltip\')" onmouseout="toolTip()" alt="offline" />');
       if ($showcountryflag)
@@ -304,12 +307,12 @@ function char_main(&$sqlr, &$sqlc)
                     </td>
                     <td class="half_line" colspan="2" align="center" width="50%">
                       <div class="gradient_p">'.$lang_item['health'].':</div>
-                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_MAX_HEALTH].'</div>';
+                      <div class="gradient_pp">'.$char['health'].'</div>';
       if ($char['class'] == 11) //druid
         $output .= '
                       </br>
                       <div class="gradient_p">'.$lang_item['energy'].':</div>
-                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_ENERGY].'/'.$char_data[CHAR_DATA_OFFSET_MAX_ENERGY].'</div>';
+                      <div class="gradient_pp">'.$char['power4'].'</div>';
       $output .= '
                     </td>
                     <td class="half_line" colspan="2" align="center" width="50%">';
@@ -317,29 +320,29 @@ function char_main(&$sqlr, &$sqlc)
       {
         $output .= '
                       <div class="gradient_p">'.$lang_item['rage'].':</div>
-                      <div class="gradient_pp">'.$rage.'/'.$maxrage.'</div>';
+                      <div class="gradient_pp">'.$rage.'</div>';
       }
       elseif ($char['class'] == 4) // rogue
       {
         $output .= '
                       <div class="gradient_p">'.$lang_item['energy'].':</div>
-                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_ENERGY].'/'.$char_data[CHAR_DATA_OFFSET_MAX_ENERGY].'</div>';
+                      <div class="gradient_pp">'.$char['power4'].'</div>';
       }
       elseif ($char['class'] == 6) // death knight
       {
         // Don't know if FOCUS is the right one need to verify with Death Knight player.
         $output .= '
                       <div class="gradient_p">'.$lang_item['runic'].':</div>
-                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_FOCUS].'/'.$char_data[CHAR_DATA_OFFSET_MAX_FOCUS].'</div>';
+                      <div class="gradient_pp">Unknown</div>';
       }
       elseif ($char['class'] == 11) // druid
       {
         $output .= '
                       <div class="gradient_p">'.$lang_item['mana'].':</div>
-                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_MAX_MANA].'</div>
+                      <div class="gradient_pp">'.$char['power1'].'</div>
                       </br>
                       <div class="gradient_p">'.$lang_item['rage'].':</div>
-                      <div class="gradient_pp">'.$rage.'/'.$maxrage.'</div>';
+                      <div class="gradient_pp">'.$rage.'</div>';
       }
       elseif ($char['class'] == 2 || // paladin
               $char['class'] == 3 || // hunter
@@ -350,7 +353,7 @@ function char_main(&$sqlr, &$sqlc)
       {
         $output .= '
                       <div class="gradient_p">'.$lang_item['mana'].':</div>
-                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_MAX_MANA].'</div>';
+                      <div class="gradient_pp">'.$char['power1'].'</div>';
       }
       $output .= '
                     </td>

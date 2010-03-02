@@ -189,9 +189,7 @@ function front(&$sqlr, &$sqlc, &$sqlm)
     if($order_by == 'ip')
       $result = $sqlr->query('select id, last_ip from account where active_realm_id  != 1 order by last_ip '.$order_dir.' LIMIT '.$start.', '.$itemperpage.'');
     else
-      $result = $sqlc->query('
-      SELECT guid, name, race, class, zone, map, level, account, gender,
-        CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_HONOR_POINTS+1).'), " ", -1) AS UNSIGNED) AS highest_rank,
+      $result = $sqlc->query('SELECT guid, name, race, class, zone, map, level, account, gender, totalHonorPoints, 
         CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_GUILD_ID+1).'), " ", -1) AS UNSIGNED) as gname
         FROM characters WHERE online= 1 '.($gm_online == '0' ? 'AND extra_flags &1 = 0 ' : '').$order_side.' ORDER BY '.$order_by.' '.$order_dir.' LIMIT '.$start.', '.$itemperpage.'');
     $total_online = $sqlc->result($sqlc->query('SELECT count(*) FROM characters WHERE online= 1'.(($gm_online_count == '0') ? ' AND extra_flags &1 = 0' : '')), 0);
@@ -216,7 +214,7 @@ function front(&$sqlr, &$sqlc, &$sqlm)
                 <th width="1%"><a href="index.php?start='.$start.'&amp;start_m='.$start_m.'&amp;order_by=race&amp;dir='.$dir.'"'.($order_by==='race' ? ' class="'.$order_dir.'"' : '').'>'.$lang_index['race'].'</a></th>
                 <th width="1%"><a href="index.php?start='.$start.'&amp;start_m='.$start_m.'&amp;order_by=class&amp;dir='.$dir.'"'.($order_by==='class' ? ' class="'.$order_dir.'"' : '').'>'.$lang_index['class'].'</a></th>
                 <th width="5%"><a href="index.php?start='.$start.'&amp;start_m='.$start_m.'&amp;order_by=level&amp;dir='.$dir.'"'.($order_by==='level' ? ' class="'.$order_dir.'"' : '').'>'.$lang_index['level'].'</a></th>
-                <th width="1%"><a href="index.php?start='.$start.'&amp;start_m='.$start_m.'&amp;order_by=highest_rank&amp;dir='.$dir.'"'.($order_by==='highest_rank' ? ' class="'.$order_dir.'"' : '').'>'.$lang_index['rank'].'</a></th>
+                <th width="1%"><a href="index.php?start='.$start.'&amp;start_m='.$start_m.'&amp;order_by=totalHonorPoints&amp;dir='.$dir.'"'.($order_by==='totalHonorPoints' ? ' class="'.$order_dir.'"' : '').'>'.$lang_index['rank'].'</a></th>
                 <th width="15%"><a href="index.php?start='.$start.'&amp;start_m='.$start_m.'&amp;order_by=gname&amp;dir='.$dir.'"'.($order_by==='gname' ? ' class="'.$order_dir.'"' : '').'>'.$lang_index['guild'].'</a></th>
                 <th width="20%"><a href="index.php?start='.$start.'&amp;start_m='.$start_m.'&amp;order_by=map&amp;dir='.$dir.'"'.($order_by==='map '.$order_dir.', zone' ? ' class="'.$order_dir.'"' : '').'>'.$lang_index['map'].'</a></th>
                 <th width="25%"><a href="index.php?start='.$start.'&amp;start_m='.$start_m.'&amp;order_by=zone&amp;dir='.$dir.'"'.($order_by==='zone '.$order_dir.', map' ? ' class="'.$order_dir.'"' : '').'>'.$lang_index['zone'].'</a></th>';
@@ -237,8 +235,7 @@ function front(&$sqlr, &$sqlc, &$sqlm)
       if($order_by == 'ip')
       {
         $temp = $sqlc->fetch_assoc($sqlc->query('
-        SELECT guid, name, race, class, zone, map, level, account, gender,
-          CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_HONOR_POINTS+1).'), " ", -1) AS UNSIGNED) AS highest_rank,
+        SELECT guid, name, race, class, zone, map, level, account, gender, totalHonorPoints,
           CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_GUILD_ID+1).'), " ", -1) AS UNSIGNED) as gname
           FROM characters WHERE online= 1 '.($gm_online == '0' ? 'AND extra_flags &1 = 0 ' : '').$order_side.' and account = '.$char['id'].''));
         $char = $temp;
@@ -268,7 +265,7 @@ function front(&$sqlr, &$sqlc, &$sqlm)
                 </td>
                 <td>'.char_get_level_color($char['level']).'</td>
                 <td>
-                  <span onmouseover="toolTip(\''.char_get_pvp_rank_name($char['highest_rank'], char_get_side_id($char['race'])).'\', \'item_tooltip\')" onmouseout="toolTip()" style="color: white;"><img src="img/ranks/rank'.char_get_pvp_rank_id($char['highest_rank'], char_get_side_id($char['race'])).'.gif" alt="" /></span>
+                  <span onmouseover="toolTip(\''.char_get_pvp_rank_name($char['totalHonorPoints'], char_get_side_id($char['race'])).'\', \'item_tooltip\')" onmouseout="toolTip()" style="color: white;"><img src="img/ranks/rank'.char_get_pvp_rank_id($char['totalHonorPoints'], char_get_side_id($char['race'])).'.gif" alt="" /></span>
                 </td>
                 <td>
                   <a href="guild.php?action=view_guild&amp;error=3&amp;id='.$char['gname'].'">'.htmlentities($guild_name).'</a>
