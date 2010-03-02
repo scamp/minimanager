@@ -70,9 +70,17 @@ function redirect($url)
 //redirects to error page with error code
 function error($err)
 {
-  //$err = addslashes($err);
-  redirect('error.php?err='.$err.'');
+  global $output, $lang_global;
+
+  ob_clean(); // clean output buffer
+  ob_start();
+  debug_print_backtrace();
+  $contents = str_replace("\n", '<br /><br />', ob_get_contents()); // catch backtrace
+  ob_end_clean();
+  define('ERROR_MSG', $err . '<br /><br />' . $contents); // define error
+  require('error.php'); // display it
 }
+
 
 
 //#############################################################################
