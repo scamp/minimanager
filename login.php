@@ -7,6 +7,7 @@ require_once 'header.php';
 //#############################################################################
 function dologin(&$sqlr)
 {
+global $mmfpm_db, $require_account_verify;
 if (empty($_POST['user']) || empty($_POST['pass']))
 redirect('login.php?error=2');
 
@@ -16,7 +17,24 @@ $user_pass  = $sqlr->quote_smart($_POST['pass']);
 if (255 < strlen($user_name) || 255 < strlen($user_pass))
 redirect('login.php?error=1');
 
-$result = $sqlr->query('SELECT id, gmlevel, username FROM account WHERE username = \''.$user_name.'\' AND sha_pass_hash = \''.$user_pass.'\'');
+$result = $sqlr->query('SELECT id, gmlevel, username 
+						FROM account 
+						WHERE username = \''.$user_name.'\' AND sha_pass_hash = \''.$user_pass.'\'');
+
+	if ($require_account_verify) 
+	{
+		$sqlm = new SQL;
+		$sqlm->connect($mmfpm_db['addr'], $mmfpm_db['user'], $mmfpm_db['pass'], $mmfpm_db['name']);
+		$result2 = $sqlm->query("SELECT * 
+									FROM mm_account_verification 
+									WHERE username = '$user_name'");
+		if ($sqlm->num_rows($result2) >= 1)
+		{
+			$sqlm->close;
+		redirect('login.php?error=7');
+		}
+	}
+
 unset($user_name);
 
 if (1 == $sqlr->num_rows($result))
@@ -218,6 +236,8 @@ elseif (5 == $err)
 $output .=  '<h1><font class="error">'.$lang_login['no_permision'].'</font></h1>';
 elseif (6 == $err)
 $output .=  '<h1><font class="error">'.$lang_login['after_registration'].'</font></h1>';
+elseif (7 == $err)
+$output .=  '<h1><font class="error">'.$lang_login['verify_required'].'</font></h1>';
 else
 $output .=  '<h1>'.$lang_login['enter_valid_logon'].'</h1>';
 

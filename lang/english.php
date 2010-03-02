@@ -49,6 +49,16 @@ $lang_global = array(
   'language_8' => 'Russian'
   );
 
+// ----- VERIFY.PHP -----
+function lang_verify()
+{
+  $lang_verify = array
+  (
+  'verify_failed' => 'Verification failed!',
+  'verify_success' => 'Verification succeeded. You can now log into your account!'
+  );
+  return $lang_verify;
+}
 
 // ----- LOGIN.PHP -----
 function lang_login()
@@ -68,7 +78,8 @@ function lang_login()
   'select_realm' => 'Select Realm',
   'remember_me' => 'Remember Me',
   'pass_recovery' => 'Forgot Your Password?',
-  'after_registration' => 'Your account creation was successful!'
+  'after_registration' => 'Your account creation was successful!',
+  'verify_required' => 'Your account requires verification. Please check your email!'
   );
   return $lang_login;
 }
@@ -169,6 +180,7 @@ $lang_register = array(
   'i_agree' => 'I Agree',
   'i_dont_agree' => 'I Do Not Agree',
   'pass_too_long' => 'The password you have entered exceeds the maximum allowed length',
+  'account_needs_verified' => 'That account is already registered and awaiting verification!',
   'invited_by' => 'Invited by',
   'invited_info' => 'Please write the account name of the player who invited you to register here.',
   'email_address_used' => 'This email has an account already.<br/>No more accounts can be created for this email address.',

@@ -168,16 +168,17 @@ $item_icons                 = 'img/icons'; // and this is where it will save to 
 //#############################################################################
 //---- New account creation Options ----
 
-$disable_acc_creation  = false;     // true = Do not allow new accounts to be created
-$expansion_select      = true;      // true = Shows option to select expansion or classic. (false = no option, WOTLK enabled by default)
-$defaultoption         = 2;         // if the above is false then set what the default option will be (2 = WOTLK, 1 = TBC, 0 = Classic)
-$enable_captcha        = false;     // false = no security image check (enable for protection against 'bot' registrations)
+$disable_acc_creation   = false;     // true = Do not allow new accounts to be created
+$expansion_select       = true;      // true = Shows option to select expansion or classic. (false = no option, WOTLK enabled by default)
+$defaultoption          = 2;         // if the above is false then set what the default option will be (2 = WOTLK, 1 = TBC, 0 = Classic)
+$enable_captcha         = false;     // false = no security image check (enable for protection against 'bot' registrations)
                                     // captcha needs php GD & FreeType Library support
-$send_mail_on_creation = false;     // true = send mail at account creation.
-$create_acc_locked     = 0;         // if set to '1' newly created accounts will be made locked to registered IP, disallowing user to login from other IPs.
-$validate_mail_host    = false;     // actualy make sure the mail host provided in email is valid/accessible host.
-$limit_acc_per_ip      = false;     // true = limit to one account per IP
-$simple_register       = false;     // Sets the registration to a simple form. Name, Password, Expansion and Email.
+$send_mail_on_creation  = false;     // true = send mail at account creation.
+$create_acc_locked      = 0;         // if set to '1' newly created accounts will be made locked to registered IP, disallowing user to login from other IPs.
+$validate_mail_host     = false;     // actualy make sure the mail host provided in email is valid/accessible host.
+$require_account_verify = false;    // If set to true, an email will be sent to registered email address requiring verification before account creation
+$limit_acc_per_ip       = false;     // true = limit to one account per IP
+$simple_register        = false;     // Sets the registration to a simple form. Name, Password, Expansion and Email.
 
 // this option will limit account creation to users from selected net range(s).
 // allow all => empty array

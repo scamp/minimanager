@@ -1,8 +1,55 @@
 <?php
 
 
- require_once("header.php");
+require_once("header.php");
 
+//#####################################################################################################
+// DO EMAIL VERIFICATION
+//#####################################################################################################
+function do_verify_email()
+{
+	global	$user_name, 
+			$authkey, $mail, $from_mail, $title, $mailer_type, $smtp_cfg;
+
+require_once("libs/mailer/class.phpmailer.php");
+
+	$mail2 = new PHPMailer();
+	$mail2->Mailer = $mailer_type;
+	if ($mailer_type == "smtp")
+	{
+		$mail2->Host = $smtp_cfg['host'];
+		$mail2->Port = $smtp_cfg['port'];
+		if($smtp_cfg['user'] != '')
+		{
+			$mail2->SMTPAuth  = true;
+			$mail2->Username  = $smtp_cfg['user'];
+			$mail2->Password  =  $smtp_cfg['pass'];
+		}
+	}
+
+	$body = "Hello, {$user_name}!<br /><br />Thank you for registering on our account management system. Unfortunately, all new accounts are required to verify their email addresses for security. Please follow the link below to verify your account now!<br /><br />
+			<a href=\"{$_SERVER['HTTP_HOST']}{$_SERVER['SCRIPT_NAME']}?username={$user_name}&amp;authkey={$authkey}\">{$_SERVER['HTTP_HOST']}{$_SERVER['SCRIPT_NAME']}?username={$user_name}&amp;authkey={$authkey}</a>
+			If you are unable to see the link above, please copy and paste the following URL into your browsers address bar.<br />{$_SERVER['HTTP_HOST']}{$_SERVER['SCRIPT_NAME']}?username={$user_name}&amp;authkey={$authkey}<br /><br />Thank you, <br />{$title} Manager";
+
+	$mail2->WordWrap = 50;
+	$mail2->From = $from_mail;
+	$mail2->FromName = "{$title} Admin";
+	$mail2->Subject = "Account Verfication Needed";
+	$mail2->IsHTML(true);
+	$mail2->Body = $body;
+	$mail2->AddAddress($mail);
+
+	if(!$mail2->Send())
+	{
+		$mail2->ClearAddresses();
+			redirect("register.php?&err=11&usr=".$mail2->ErrorInfo);
+	} 
+	else
+	{
+	return "Excellent job!";
+    }
+}
+ 
 //#####################################################################################################
 // DO REGISTER
 //#####################################################################################################
