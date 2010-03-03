@@ -53,9 +53,13 @@ require_once("libs/mailer/class.phpmailer.php");
 //#####################################################################################################
 // DO REGISTER
 //#####################################################################################################
-function doregister(){
- global $lang_global, $characters_db, $realm_db, $realm_id, $disable_acc_creation, $limit_acc_per_ip, $valid_ip_mask,
-       $send_mail_on_creation, $create_acc_locked, $from_mail, $mailer_type, $smtp_cfg, $title, $defaultoption;
+function doregister()
+{
+	global 	$lang_global, 
+			$characters_db, $realm_db, $mmfpm_db, $realm_id, 
+			$disable_acc_creation, $limit_acc_per_ip, $valid_ip_mask,
+			$send_mail_on_creation, $create_acc_locked, $from_mail, $defaultoption, $require_account_verify,
+			$mailer_type, $smtp_cfg, $title,;
 
  if (($_POST['security_code']) != ($_SESSION['security_code'])) {
    redirect("register.php?err=13");
@@ -155,9 +159,32 @@ function doregister(){
       $expansion = (isset($_POST['expansion'])) ? $sql->quote_smart($_POST['expansion']) : 0;
         else $expansion = $defaultoption;
 
-    $result = $sql->query("INSERT INTO account (username,sha_pass_hash,gmlevel,email, joindate,last_ip,failed_logins,locked,last_login,active_realm_id,expansion)
-              VALUES (UPPER('$user_name'),'$pass',0,'$mail',now(),'$last_ip',0,$create_acc_locked,NULL,0,$expansion)");
+		if ($require_account_verify) 
+		{
+			$sqlm = new SQL;
+			$sqlm->connect($mmfpm_db['addr'], $mmfpm_db['user'], $mmfpm_db['pass'], $mmfpm_db['name']);
+			$result2 = $sqlm->query("SELECT * FROM mm_account_verification WHERE username = '$user_name' OR email = '$mail'");
+			if ($sqlm->num_rows($result2) > 0)
+			{
+				redirect("register.php?err=15");
+			}
+			else 
+			{
+				$client_ip = $_SERVER['REMOTE_ADDR'];
+				$authkey = sha1($client_ip . time());
+				$result = $sqlm->query("INSERT INTO mm_account_verification (username,sha_pass_hash,gmlevel,email, joindate,last_ip,failed_logins,locked,last_login,active_realm_id,expansion,authkey)
+										VALUES (UPPER('$user_name'),'$pass',0,'$mail',now(),'$last_ip',0,$create_acc_locked,NULL,0,$expansion,$authkey)");
 
+				do_verify_email();
+				redirect("login.php?error=7");
+			}
+           $sqlm->close();
+		}
+		else 
+		{
+			$result = $sql->query("INSERT INTO account (username,sha_pass_hash,gmlevel,email, joindate,last_ip,failed_logins,locked,last_login,active_realm_id,expansion)
+									VALUES (UPPER('$user_name'),'$pass',0,'$mail',now(),'$last_ip',0,$create_acc_locked,NULL,0,$expansion)");
+		}
     $sql->close();
 
     setcookie ("terms", "", time() - 3600);
@@ -482,6 +509,9 @@ case 13:
    break;
 case 14:
     $output .= "<h1><font class=\"error\">{$lang_register['email_address_used']}</font></h1>";
+   break;
+case 15:
+    $output .= "<h1><font class=\"error\">{$lang_register['account_needs_verified']}</font></h1>";
    break;
 default:
    $output .= "<h1><font class=\"error\">{$lang_register['fill_all_fields']}</font></h1>";
