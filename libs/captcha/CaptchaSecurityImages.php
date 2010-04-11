@@ -24,7 +24,7 @@ session_start();
 
 class CaptchaSecurityImages
 {
-  var $font = 'monofont.ttf';
+  var $font = './monofont.ttf';
 
   function generateCode($characters)
   {
@@ -54,16 +54,19 @@ class CaptchaSecurityImages
     {
       imagefilledellipse($image, mt_rand(0,$width), mt_rand(0,$height), 1, 1, $noise_color);
     }
-    /* generate random lines in background */
-    for($i=0; $i<($width*$height)/150; ++$i)
-    {
-      imageline($image, mt_rand(0,$width), mt_rand(0,$height), mt_rand(0,$width), mt_rand(0,$height), $noise_color);
-    }
+
     /* create textbox and add text */
     $textbox = imagettfbbox($font_size, 0, $this->font, $code) or die('Error in imagettfbbox function');
     $x = ($width  - $textbox[4])/2;
     $y = ($height - $textbox[5])/2;
     imagettftext($image, $font_size, 0, $x, $y, $text_color, $this->font , $code) or die('Error in imagettftext function');
+
+
+    /* generate random lines in background */
+    for($i=0; $i<($width*$height)/150; ++$i)
+    {
+      imageline($image, mt_rand(0,$width), mt_rand(0,$height), mt_rand(0,$width), mt_rand(0,$height), $noise_color);
+    }
     /* output captcha image to browser */
     header('Content-Type: image/jpeg');
     imagejpeg($image);
