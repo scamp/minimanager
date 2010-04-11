@@ -971,11 +971,11 @@ function edit_user()
               </tr>
               <tr>
                 <td>{$lang_user['banned']}</td>";
-  $que = $sqlr->query("SELECT bandate, unbandate, bannedby, banreason FROM account_banned WHERE id = $id");
+  $que = $sqlr->query("SELECT FROM_UNIXTIME(bandate), FROM_UNIXTIME(unbandate), bannedby, banreason FROM account_banned WHERE id = $id");
   if ($sqlr->num_rows($que))
   {
     $banned = $sqlr->fetch_row($que);
-    $ban_info = " From:".date('d-m-Y G:i', $banned[0])." till:".date('d-m-Y G:i', $banned[1])."<br />by $banned[2]";
+    $ban_info = " From:".$banned[0]." till:".$banned[1]."<br />by $banned[2]";
     $ban_checked = " checked=\"checked\"";
   }
   else
