@@ -239,7 +239,7 @@ function top100($realmid, &$sqlr, &$sqlc)
     $output .= '
               <tr valign="top">
                 <td>'.(++$i+$start).'</td>
-                <td><a href="char.php?id='.$char['guid'].'&amp;realm='.$realm_id.'">'.htmlentities($char['name']).'</a></td>
+                <td><a href="char.php?id='.$char['guid'].'&amp;realm='.$realm_id.'">'.$char['name'].'</a></td>
                 <td>
                   <img src="img/c_icons/'.$char['race'].'-'.$char['gender'].'.gif" alt="'.char_get_race_name($char['race']).'" onmousemove="toolTip(\''.char_get_race_name($char['race']).'\', \'item_tooltip\')" onmouseout="toolTip()" />
                   <img src="img/c_icons/'.$char['class'].'.gif" alt="'.char_get_class_name($char['class']).'" onmousemove="toolTip(\''.char_get_class_name($char['class']).'\', \'item_tooltip\')" onmouseout="toolTip()" />
@@ -257,7 +257,7 @@ function top100($realmid, &$sqlr, &$sqlc)
         $time .= $hours.' hours';
 
       $output .= '
-                <td><a href="guild.php?action=view_guild&amp;realm='.$realm_id.'&amp;error=3&amp;id='.$char['gname'].'">'.htmlentities($guild_name).'</a></td>
+                <td><a href="guild.php?action=view_guild&amp;realm='.$realm_id.'&amp;error=3&amp;id='.$char['gname'].'">'.$guild_name.'</a></td>
                 <td align="right">
                   '.substr($char['money'],  0, -4).'<img src="img/gold.gif" alt="" align="middle" />
                   '.substr($char['money'], -4,  2).'<img src="img/silver.gif" alt="" align="middle" />

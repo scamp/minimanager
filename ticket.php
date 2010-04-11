@@ -101,8 +101,8 @@ function browse_tickets(&$sqlc)
                 <td><a href=\"ticket.php?action=edit_ticket&amp;error=4&amp;id=$ticket[0]\">{$lang_global['edit']}</a></td>";
     $output .="
                 <td>$ticket[0]</td>
-                <td><a href=\"char.php?id=$ticket[1]\">".htmlentities($ticket[3])."</a></td>
-                <td>".htmlentities($ticket[2])." ...</td>
+                <td><a href=\"char.php?id=$ticket[1]\">".$ticket[3]."</a></td>
+                <td>".$ticket[2]." ...</td>
               </tr>";
   }
   unset($query);
@@ -208,11 +208,11 @@ function edit_ticket()
                   </tr>
                   <tr>
                     <td>{$lang_ticket['submitted_by']}:</td>
-                    <td><a href=\"char.php?id=$ticket[0]\">".htmlentities($ticket[2])."</a></td>
+                    <td><a href=\"char.php?id=$ticket[0]\">".$ticket[2]."</a></td>
                   </tr>
                   <tr>
                     <td valign=\"top\">{$lang_ticket['ticket_text']}</td>
-                    <td><textarea name=\"new_text\" rows=\"5\" cols=\"40\">".htmlentities($ticket[1])."</textarea></td>
+                    <td><textarea name=\"new_text\" rows=\"5\" cols=\"40\">".$ticket[1]."</textarea></td>
                   </tr>
                   <tr>
                     <td>";

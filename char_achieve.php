@@ -204,7 +204,7 @@ function char_achievements(&$sqlr, &$sqlc)
             </div>
             <div id="tab_content">
               <font class="bold">
-                '.htmlentities($char['name']).' -
+                '.$char['name'].' -
                 <img src="img/c_icons/'.$char['race'].'-'.$char['gender'].'.gif"
                   onmousemove="toolTip(\''.char_get_race_name($char['race']).'\', \'item_tooltip\')" onmouseout="toolTip()" alt="" />
                 <img src="img/c_icons/'.$char['class'].'.gif"

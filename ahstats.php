@@ -268,7 +268,7 @@ function browse_auctions(&$sqlr, &$sqlc)
           $value = ($value >= 0)? (floor($value / 86400).$lang_auctionhouse['dayshortcut']." ". floor(($value % 86400)/3600).$lang_auctionhouse['hourshortcut']." ".floor((($value % 86400)%3600)/60).$lang_auctionhouse['mnshortcut']) : $lang_auctionhouse['auction_over'];
           break;
         case 5:
-          $value = "<b>".((!empty($rows[10])) ? "<font color=".$sidecolor[$rows[10]].">".htmlentities($value)."</font>" : "N/A")."</b>";
+          $value = "<b>".((!empty($rows[10])) ? "<font color=".$sidecolor[$rows[10]].">".$value."</font>" : "N/A")."</b>";
           break;
         case 7:
           case 6:
@@ -284,7 +284,7 @@ function browse_auctions(&$sqlr, &$sqlc)
           $value = "<a href=\"$item_datasite$rows[1]\" target=\"_blank\" onmouseover=\"toolTip,'item_tooltip')\"><img src=\"".get_item_icon($rows[1], $sqlm, $sqlw)."\" class=\"".get_item_border($rows[1], $sqlw)."\" alt=\"$value\" /><br/>$value".(($rows[8]>1) ? " (x$rows[8])" : "")."</a>";
           break;
         case 0:
-          $value = "<b>".((!empty($rows[9])) ? "<font color=".$sidecolor[$rows[9]].">".htmlentities($value)."</font>" : "N/A")."</b>";
+          $value = "<b>".((!empty($rows[9])) ? "<font color=".$sidecolor[$rows[9]].">".$value."</font>" : "N/A")."</b>";
           break;
       }
       if (!in_array($row,$hiddencols))

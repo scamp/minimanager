@@ -15,6 +15,7 @@ class SQL //MySQL
 
     if ($pconnect) $this->link_id = @mysql_pconnect($db_host, $db_username, $db_password);
     else $this->link_id = @mysql_connect($db_host, $db_username, $db_password, $newlink);
+		@mysql_query("SET NAMES 'utf8'");
 
     if ($this->link_id){
       if($db_name){

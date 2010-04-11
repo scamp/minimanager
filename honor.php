@@ -59,7 +59,7 @@ while ($char = $sql->fetch_row($query)) {
 $guild_name = $sql->fetch_row($sql->query("SELECT `name` FROM `guild` WHERE `guildid`=".$char[8].";"));
 
     $output .= " <tr>
-       <td><a href=\"char.php?id=$char[0]\">".htmlentities($char[1])."</a></td>
+       <td><a href=\"char.php?id=$char[0]\">".$char[1]."</a></td>
        <td><img src='img/c_icons/{$char[2]}-{$char[9]}.gif' onmousemove='toolTip(\"".char_get_race_name($char[2])."\",\"item_tooltip\")' onmouseout='toolTip()'></td>
          <td><img src='img/c_icons/{$char[3]}.gif' onmousemove='toolTip(\"".char_get_class_name($char[3])."\",\"item_tooltip\")' onmouseout='toolTip()'></td>
        <td>".char_get_level_color($char[6])."</td>
@@ -67,7 +67,7 @@ $guild_name = $sql->fetch_row($sql->query("SELECT `name` FROM `guild` WHERE `gui
        <td>$char[4]</td>
        <td>$char[5]</td>
        <td>$char[7]</td>
-       <td><a href=\"guild.php?action=view_guild&amp;error=3&amp;id=$char[8]\">".htmlentities($guild_name[0])."</a></td>
+       <td><a href=\"guild.php?action=view_guild&amp;error=3&amp;id=$char[8]\">".$guild_name[0]."</a></td>
        </tr>";
 }
 
@@ -116,7 +116,7 @@ while ($char = $sql->fetch_row($query)) {
 $guild_name = $sql->fetch_row($sql->query("SELECT `name` FROM `guild` WHERE `guildid`=".$char[8].";"));
 
     $output .= " <tr>
-       <td><a href=\"char.php?id=$char[0]\">".htmlentities($char[1])."</a></td>
+       <td><a href=\"char.php?id=$char[0]\">".$char[1]."</a></td>
        <td><img src='img/c_icons/{$char[2]}-{$char[9]}.gif' onmousemove='toolTip(\"".char_get_race_name($char[2])."\",\"item_tooltip\")' onmouseout='toolTip()'></td>
          <td><img src='img/c_icons/{$char[3]}.gif' onmousemove='toolTip(\"".char_get_class_name($char[3])."\",\"item_tooltip\")' onmouseout='toolTip()'></td>
        <td>".char_get_level_color($char[6])."</td>
@@ -124,7 +124,7 @@ $guild_name = $sql->fetch_row($sql->query("SELECT `name` FROM `guild` WHERE `gui
        <td>$char[4]</td>
        <td>$char[5]</td>
        <td>$char[7]</td>
-       <td><a href=\"guild.php?action=view_guild&amp;error=3&amp;id=$char[8]\">".htmlentities($guild_name[0])."</a></td>
+       <td><a href=\"guild.php?action=view_guild&amp;error=3&amp;id=$char[8]\">".$guild_name[0]."</a></td>
        </tr>";
 }
 

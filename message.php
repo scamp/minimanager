@@ -26,7 +26,7 @@ function main()
                 </tr>
                 <tr>
                   <td colspan="2" align="center">
-                    <textarea id="msg" name="msg" rows="26" cols="80"></textarea>
+                    <textarea id="msg" name="msg" rows="3" cols="80"></textarea>
                   </td>
                 </tr>
                 <tr>

@@ -57,7 +57,7 @@ function front(&$sqlr, &$sqlc)
       return $uptimeString;
     }
 
-    $staticUptime = $lang_index['realm'].' <em>'.htmlentities(get_realm_name($realm_id)).'</em> '.$lang_index['online'].' for '.format_uptime($uptimetime);
+    $staticUptime = $lang_index['realm'].' <em>'.get_realm_name($realm_id).'</em> '.$lang_index['online'].' for '.format_uptime($uptimetime);
     unset($uptimetime);
     $output .= '
             <div id="uptime">
@@ -290,11 +290,11 @@ function front(&$sqlr, &$sqlc)
       if (($user_lvl >= $gm))
         $output .= '
                   <a href="char.php?id='.$char['guid'].'">
-                    <span onmousemove="toolTip(\''.id_get_gm_level($gm).'\', \'item_tooltip\')" onmouseout="toolTip()">'.htmlentities($char['name']).'</span>
+                     <span onmousemove="toolTip(\''.id_get_gm_level($gm).'\', \'item_tooltip\')" onmouseout="toolTip()">'.$char['name'].'</span>
                   </a>';
       else
         $output .='
-                  <span onmousemove="toolTip(\''.id_get_gm_level($gm).'\', \'item_tooltip\')" onmouseout="toolTip()">'.htmlentities($char['name']).'</span>';
+               <span onmousemove="toolTip(\''.id_get_gm_level($gm).'\', \'item_tooltip\')" onmouseout="toolTip()">'.$char['name'].'</span>';
       $output .= '
                 </td>
                 <td>
@@ -308,7 +308,7 @@ function front(&$sqlr, &$sqlc)
                   <span onmouseover="toolTip(\''.char_get_pvp_rank_name($char['highest_rank'], char_get_side_id($char['race'])).'\', \'item_tooltip\')" onmouseout="toolTip()" style="color: white;"><img src="img/ranks/rank'.char_get_pvp_rank_id($char['highest_rank'], char_get_side_id($char['race'])).'.gif" alt="" /></span>
                 </td>
                 <td>
-                  <a href="guild.php?action=view_guild&amp;error=3&amp;id='.$char['gname'].'">'.htmlentities($guild_name).'</a>
+                  <a href="guild.php?action=view_guild&amp;error=3&amp;id='.$char['gname'].'">'.$guild_name.'</a>
                 </td>
                 <td><span onmousemove="toolTip(\'MapID:'.$char['map'].'\', \'item_tooltip\')" onmouseout="toolTip()">'.get_map_name($char['map'], $sqlm).'</span></td>
                 <td><span onmousemove="toolTip(\'ZoneID:'.$char['zone'].'\', \'item_tooltip\')" onmouseout="toolTip()">'.get_zone_name($char['zone'], $sqlm).'</span></td>';

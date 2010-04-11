@@ -110,7 +110,7 @@ function login(&$sqlr)
     while ($realm = $sqlr->fetch_assoc($result))
       if(isset($server[$realm['id']]))
         $output .= '
-                        <option value="'.$realm['id'].'">'.htmlentities($realm['name']).'</option>';
+                        <option value="'.$realm['id'].'">'.$realm['name'].'</option>';
     $output .= '
                       </select>
                     </td>
