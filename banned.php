@@ -35,7 +35,7 @@ function show_list()
   $query_1 = $sqlr->query("SELECT count(*) FROM $ban_type");
   $all_record = $sqlr->result($query_1,0);
 
-  $result = $sqlr->query("SELECT $key_field, bandate, unbandate, bannedby, SUBSTRING_INDEX(banreason,' ',3) FROM $ban_type ORDER BY $order_by $order_dir LIMIT $start, $itemperpage");
+  $result = $sqlr->query("SELECT $key_field, FROM_UNIXTIME(bandate), FROM_UNIXTIME(unbandate), bannedby, SUBSTRING_INDEX(banreason,' ',3) FROM $ban_type ORDER BY $order_by $order_dir LIMIT $start, $itemperpage");
   $this_page = $sqlr->num_rows($result);
 
   $output .= "
@@ -91,8 +91,8 @@ function show_list()
     $output .= "
               </td>
               <td>$name_out</td>
-              <td>".date('d-m-Y G:i', $ban[1])."</td>
-              <td>".date('d-m-Y G:i', $ban[2])."</td>
+              <td>".$ban[1]."</td>
+              <td>".$ban[2]."</td>
               <td>$ban[3]</td>
               <td>$ban[4]</td>
             </tr>";

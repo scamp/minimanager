@@ -67,7 +67,7 @@ function browse_chars(&$sqlr, &$sqlc)
 
         $sql_query = "SELECT guid,name,account,race,class,zone,map,
         CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(`data`, ' ', ".(CHAR_DATA_OFFSET_HONOR_KILL+1)."), ' ', -1) AS UNSIGNED) AS highest_rank,
-        online, level, gender, logout_time,
+        online, level, gender, FROM_UNIXTIME(logout_time),
         CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(`data`, ' ', ".(CHAR_DATA_OFFSET_GUILD_ID+1)."), ' ', -1) AS UNSIGNED) as gname FROM `characters`
         WHERE $where_out ORDER BY $order_by $order_dir LIMIT $start, $itemperpage";
       break;
@@ -78,7 +78,7 @@ function browse_chars(&$sqlr, &$sqlc)
 
         $sql_query = "SELECT guid,name,account,race,class,zone,map,
         CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(`data`, ' ', ".(CHAR_DATA_OFFSET_HONOR_KILL+1)."), ' ', -1) AS UNSIGNED) AS highest_rank,
-        online, level, gender, logout_time,
+        online, level, gender, FROM_UNIXTIME(logout_time),
         CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(`data`, ' ', ".(CHAR_DATA_OFFSET_GUILD_ID+1)."), ' ', -1) AS UNSIGNED) as gname FROM `characters`
         WHERE $where_out ORDER BY $order_by $order_dir LIMIT $start, $itemperpage";
       break;
@@ -89,7 +89,7 @@ function browse_chars(&$sqlr, &$sqlc)
 
         $sql_query = "SELECT guid,name,account,race,class,zone,map,
         CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(`data`, ' ', ".(CHAR_DATA_OFFSET_HONOR_KILL+1)."), ' ', -1) AS UNSIGNED) AS highest_rank,
-        online, level, gender, logout_time,
+        online, level, gender, FROM_UNIXTIME(logout_time),
         CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(`data`, ' ', ".(CHAR_DATA_OFFSET_GUILD_ID+1)."), ' ', -1) AS UNSIGNED) as gname FROM `characters`
         WHERE $where_out ORDER BY 'level' $order_dir LIMIT $start, $itemperpage";
       break;
@@ -100,7 +100,7 @@ function browse_chars(&$sqlr, &$sqlc)
 
         $sql_query = "SELECT guid,name,account,race,class,zone,map,
         CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(`data`, ' ', ".(CHAR_DATA_OFFSET_HONOR_KILL+1)."), ' ', -1) AS UNSIGNED) AS highest_rank,
-        online, level, gender, logout_time,
+        online, level, gender, FROM_UNIXTIME(logout_time),
         CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(`data`, ' ', ".(CHAR_DATA_OFFSET_GUILD_ID+1)."), ' ', -1) AS UNSIGNED) as gname FROM `characters`
         WHERE $where_out ORDER BY $order_by $order_dir LIMIT $start, $itemperpage";
       break;
@@ -129,7 +129,7 @@ function browse_chars(&$sqlr, &$sqlc)
 
         $sql_query = "SELECT guid,name,account,race,class,zone,map,
         CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(`data`, ' ', ".(CHAR_DATA_OFFSET_HONOR_KILL+1)."), ' ', -1) AS UNSIGNED) AS highest_rank,
-        online, level, gender, logout_time,
+        online, level, gender, FROM_UNIXTIME(logout_time),
         CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(`data`, ' ', ".(CHAR_DATA_OFFSET_GUILD_ID+1)."), ' ', -1) AS UNSIGNED) as gname FROM `characters`
         WHERE $where_out ORDER BY $order_by $order_dir LIMIT $start, $itemperpage";
       break;
@@ -149,7 +149,7 @@ function browse_chars(&$sqlr, &$sqlc)
 
         $sql_query = "SELECT guid,name,account,race,class,zone,map,
         CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(`data`, ' ', ".(CHAR_DATA_OFFSET_HONOR_KILL+1)."), ' ', -1) AS UNSIGNED) AS highest_rank,
-        online, level, gender, logout_time,
+        online, level, gender, FROM_UNIXTIME(logout_time),
         CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(`data`, ' ', ".(CHAR_DATA_OFFSET_GUILD_ID+1)."), ' ', -1) AS UNSIGNED) as gname FROM `characters`
         WHERE $where_out ORDER BY $order_by $order_dir LIMIT $start, $itemperpage";
       break;
@@ -160,7 +160,7 @@ function browse_chars(&$sqlr, &$sqlc)
 
         $sql_query = "SELECT guid,name,account,race,class,zone,map,
         CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(`data`, ' ', ".(CHAR_DATA_OFFSET_HONOR_KILL+1)."), ' ', -1) AS UNSIGNED) AS highest_rank,
-        online, level, gender, logout_time,
+        online, level, gender, FROM_UNIXTIME(logout_time),
         CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(`data`, ' ', ".(CHAR_DATA_OFFSET_GUILD_ID+1)."), ' ', -1) AS UNSIGNED) as gname FROM `characters`
         WHERE $where_out ORDER BY 'highest_rank' $order_dir LIMIT $start, $itemperpage";
       break;
@@ -171,7 +171,7 @@ function browse_chars(&$sqlr, &$sqlc)
 
         $sql_query = "SELECT guid,name,account,race,class,zone,map,
         CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(`data`, ' ', ".(CHAR_DATA_OFFSET_HONOR_KILL+1)."), ' ', -1) AS UNSIGNED) AS highest_rank,
-        online, level, gender, logout_time,
+        online, level, gender, FROM_UNIXTIME(logout_time),
         CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(`data`, ' ', ".(CHAR_DATA_OFFSET_GUILD_ID+1)."), ' ', -1) AS UNSIGNED) as gname FROM `characters`
         WHERE $where_out ORDER BY $order_by $order_dir LIMIT $start, $itemperpage";
       break;
@@ -182,7 +182,7 @@ function browse_chars(&$sqlr, &$sqlc)
 
         $sql_query = "SELECT guid,name,account,race,class,zone,map,
         CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(`data`, ' ', ".(CHAR_DATA_OFFSET_HONOR_KILL+1)."), ' ', -1) AS UNSIGNED) AS highest_rank,
-        online, level, gender, logout_time,
+        online, level, gender, FROM_UNIXTIME(logout_time),
         CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(`data`, ' ', ".(CHAR_DATA_OFFSET_GUILD_ID+1)."), ' ', -1) AS UNSIGNED) as gname FROM `characters`
         WHERE $where_out ORDER BY $order_by $order_dir LIMIT $start, $itemperpage";
     }
@@ -195,7 +195,7 @@ function browse_chars(&$sqlr, &$sqlc)
     $query_1 = $sqlc->query("SELECT count(*) FROM `characters`");
     $query = $sqlc->query("SELECT guid,name,account,race,class,zone,map,
       CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(`data`, ' ', ".(CHAR_DATA_OFFSET_HONOR_KILL+1)."), ' ', -1) AS UNSIGNED) AS highest_rank,
-      online,level, gender, logout_time,
+      online,level, gender, FROM_UNIXTIME(logout_time),
       CAST( SUBSTRING_INDEX(SUBSTRING_INDEX(`data`, ' ', ".(CHAR_DATA_OFFSET_GUILD_ID+1)."), ' ', -1) AS UNSIGNED) as gname
       FROM `characters` ORDER BY $order_by $order_dir LIMIT $start, $itemperpage");
   }
@@ -304,7 +304,7 @@ function browse_chars(&$sqlr, &$sqlc)
       if ($owner_gmlvl == null)
         $owner_gmlvl = 0;
     $owner_acc_name = $sqlr->result($result, 0, 'username');
-    $lastseen = date('Y-m-d G:i:s', $char[11]);
+    $lastseen = $char[11];
 
     $guild_name = $sqlc->fetch_row($sqlc->query('SELECT name FROM guild WHERE guildid = '.$char[12].''));
 
