@@ -55,7 +55,7 @@ function edit_user(&$sqlr, &$sqlc)
                   </tr>
                   <tr>
                     <td>'.$lang_edit['mail'].'</td>
-                    <td><input type="text" name="mail" size="42" maxlength="225" value="'.$acc['email'].'" /></td>
+                    <td>'.$acc['email'].'</td>
                   </tr>
                   <tr>
                     <td>'.$lang_edit['invited_by'].':</td>
@@ -267,7 +267,7 @@ function edit_user(&$sqlr, &$sqlc)
 //#############################################################################################################
 function doedit_user(&$sqlr, &$sqlc)
 {
-  global $output, $user_name;
+  global $output, $user_name, $user_id;
 
   if ( (empty($_POST['pass'])||($_POST['pass'] === ''))
     && (empty($_POST['mail'])||($_POST['mail'] === ''))
@@ -281,14 +281,17 @@ function doedit_user(&$sqlr, &$sqlc)
   $referredby = $sqlr->quote_smart(trim($_POST['referredby']));
 
   //make sure the mail is valid mail format
-  require_once 'libs/valid_lib.php';
-  if ((valid_email($new_mail)) && (strlen($new_mail) < 225));
-  else
-    redirect('edit.php?error=2');
+  //require_once 'libs/valid_lib.php';
+  //if ((valid_email($new_mail)) && (strlen($new_mail) < 225));
+  //else
+    //  redirect('edit.php?error=2');
 
-  $sqlr->query('UPDATE account SET email = \''.$new_mail.'\', '.$new_pass.' v=0, s=0, expansion = \''.$new_expansion.'\' WHERE username = \''.$user_name.'\'');
+  $sqlr->query('UPDATE account SET '.$new_pass.' v=0, s=0, expansion = \''.$new_expansion.'\' WHERE username = \''.$user_name.'\'');
+
   if (doupdate_referral($referredby, $sqlr, $sqlc) || $sqlr->affected_rows())
-    redirect('edit.php?error=3');
+{
+      redirect('edit.php?error=3');
+}
   else
     redirect('edit.php?error=4');
 

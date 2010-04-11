@@ -63,7 +63,7 @@ function char_achievements(&$sqlr, &$sqlc)
     $owner_name = $sqlr->result($result, 0, 'username');
 
     // check user permission
-    if ( ($user_lvl > $owner_gmlvl) || ($owner_name === $user_name) )
+    if ( ($user_lvl > $owner_gmlvl) || ($owner_name === $user_name) || ($owner_gmlvl <= 2))
     {
       //------------------------Character Tabs---------------------------------
       // we start with a lead of 10 spaces,
@@ -193,13 +193,26 @@ function char_achievements(&$sqlr, &$sqlc)
               }
             </script>
             <div id="tab">
-              <ul>
+              <ul>';
+
+    if (($user_lvl > $owner_gmlvl)||($owner_name === $user_name))
+        {
+            $output .= '
                 <li><a href="char.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['char_sheet'].'</a></li>
                 <li><a href="char_inv.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['inventory'].'</a></li>
                 '.(($char['level'] < 10) ? '' : '<li><a href="char_talent.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['talents'].'</a></li>').'
                 <li id="selected"><a href="char_achieve.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['achievements'].'</a></li>
                 <li><a href="char_quest.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['quests'].'</a></li>
-                <li><a href="char_friends.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['friends'].'</a></li>
+                <li><a href="char_friends.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['friends'].'</a></li>';
+        }
+    else
+        {
+            $output .= '
+                <li><a href="char.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['char_sheet'].'</a></li>
+                '.(($char['level'] < 10) ? '' : '<li><a href="char_talent.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['talents'].'</a></li>').'
+                <li id="selected"><a href="char_achieve.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['achievements'].'</a></li>';
+        };
+           $output .='
               </ul>
             </div>
             <div id="tab_content">

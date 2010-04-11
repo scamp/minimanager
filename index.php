@@ -162,6 +162,8 @@ function front(&$sqlr, &$sqlc)
   $output .= '
             </table>';
 
+
+/*
   //print online chars
   if ($online)
   {
@@ -340,6 +342,7 @@ function front(&$sqlr, &$sqlc)
             <br />
           </center>';
   }
+*/
 
 }
 

@@ -62,19 +62,33 @@ function char_talent(&$sqlr, &$sqlc)
        $owner_name = $sqlr->result($result, 0, 'username');
     }
 
-    if (($user_lvl > $owner_gmlvl)||($owner_name === $user_name))
+    if (($user_lvl > $owner_gmlvl)||($owner_name === $user_name) || ($owner_gmlvl <= 2))
     {
       $result = $sqlc->query('SELECT spell FROM character_spell WHERE guid = '.$id.' and active = 1 and disabled = 0 ORDER BY spell DESC');
       $output .= '
           <center>
               <div id="tab">
-              <ul>
+              <ul>';
+
+       if (($user_lvl > $owner_gmlvl)||($owner_name === $user_name))
+          {
+             $output .='
                 <li><a href="char.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['char_sheet'].'</a></li>
                 <li><a href="char_inv.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['inventory'].'</a></li>
                 <li id="selected"><a href="char_talent.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['talents'].'</a></li>
                 <li><a href="char_achieve.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['achievements'].'</a></li>
                 <li><a href="char_quest.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['quests'].'</a></li>
-                <li><a href="char_friends.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['friends'].'</a></li>
+                <li><a href="char_friends.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['friends'].'</a></li>';
+          }
+        else
+          {
+             $output .='
+                <li><a href="char.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['char_sheet'].'</a></li>
+                <li id="selected"><a href="char_talent.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['talents'].'</a></li>
+                <li><a href="char_achieve.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['achievements'].'</a></li>';
+         }
+
+       $output .='
               </ul>
             </div>
             <div id="tab_content">

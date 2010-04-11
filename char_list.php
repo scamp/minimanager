@@ -308,7 +308,8 @@ function browse_chars(&$sqlr, &$sqlc)
 
     $guild_name = $sqlc->fetch_row($sqlc->query('SELECT name FROM guild WHERE guildid = '.$char[12].''));
 
-    if (($user_lvl >= $owner_gmlvl)||($owner_acc_name == $user_name))
+
+    if (($user_lvl >= $owner_gmlvl)||($owner_acc_name == $user_name) || ($user_lvl <= 1) && ($owner_gmlvl <= 2))
     {
       $output .= '
               <tr>
@@ -319,8 +320,18 @@ function browse_chars(&$sqlr, &$sqlc)
       $output .= "
                 </td>
                 <td>$char[0]</td>
-                <td><a href=\"char.php?id=$char[0]\">$char[1]</a></td>
-                <td><a href=\"user.php?action=edit_user&amp;error=11&amp;id=$char[2]\">".$owner_acc_name."</a></td>
+                <td><a href=\"char.php?id=$char[0]\">$char[1]</a></td>";
+                if ($user_lvl > 1 ) 
+                {
+                $output .="
+                <td><a href=\"user.php?action=edit_user&amp;error=11&amp;id=$char[2]\">".$owner_acc_name."</a></td>";
+                }
+                else 
+                {
+                $output .="
+                <td>N/A</td>";
+                };
+                $output .="
                 <td><img src='img/c_icons/{$char[3]}-{$char[10]}.gif' onmousemove='toolTip(\"".char_get_race_name($char[3])."\",\"item_tooltip\")' onmouseout='toolTip()' alt=\"\" /></td>
                 <td><img src='img/c_icons/{$char[4]}.gif' onmousemove='toolTip(\"".char_get_class_name($char[4])."\",\"item_tooltip\")' onmouseout='toolTip()' alt=\"\" /></td>
                 <td>".char_get_level_color($char[9])."</td>

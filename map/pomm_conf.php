@@ -37,7 +37,7 @@ if (isset($_COOKIE["lang"]))
 else
   $lang = $language;
 
-$database_encoding = $site_encoding;
+$database_encoding = utf8;
 
 $server = $server_arr[$realm_id]["addr"];
 $port = $server_arr[$realm_id]["game_port"];

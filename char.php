@@ -22,7 +22,7 @@ function char_main(&$sqlr, &$sqlc)
   wowhead_tt();
 
   // we need at least an id or we would have nothing to show
-  if (empty($_GET['id']))
+  if (empty($_GET['id']) && empty($_GET['name']))
     error($lang_global['empty_fields']);
 
   // this is multi realm support, as of writing still under development
@@ -39,8 +39,13 @@ function char_main(&$sqlr, &$sqlc)
   }
 
   $id = $sqlc->quote_smart($_GET['id']);
-  if (is_numeric($id));
-  else error($lang_global['empty_fields']);
+
+  if (is_numeric($id)){
+      $result = $sqlc->query('SELECT account, race FROM characters WHERE guid = '.$id.' LIMIT 1');;
+  }elseif(isset($_GET['name'])){
+      $result = $sqlc->query('SELECT account, race, guid FROM characters WHERE name = "'.addslashes($_GET['name']).'" LIMIT 1');
+      $id=$sqlc->result($result, 0, 'guid');
+  }else error($lang_global['empty_fields']);
 
   $result = $sqlc->query('SELECT account, race FROM characters WHERE guid = '.$id.' LIMIT 1');
 
@@ -68,7 +73,8 @@ function char_main(&$sqlr, &$sqlc)
       unset($result_1);
     }
 
-    if ($user_lvl >= $owner_gmlvl && (($side_v === $side_p) || !$side_v))
+    if ($user_lvl >= $owner_gmlvl && (($side_v === $side_p) || !$side_v) || ($owner_gmlvl <= 2))
+
     {
       $result = $sqlc->query('SELECT data, name, race, class, level, zone, map, online, totaltime, gender,
         account FROM characters WHERE guid = '.$id.'');
@@ -81,8 +87,7 @@ function char_main(&$sqlr, &$sqlc)
       {
         $guild_name = $sqlc->result($sqlc->query('SELECT name FROM guild WHERE guildid ='.$char_data[CHAR_DATA_OFFSET_GUILD_ID].''), 0, 'name');
         $guild_name = '<a href="guild.php?action=view_guild&amp;realm='.$realmid.'&amp;error=3&amp;id='.$char_data[CHAR_DATA_OFFSET_GUILD_ID].'" >'.$guild_name.'</a>';
-        $mrank = $char_data[CHAR_DATA_OFFSET_GUILD_RANK] + 1;
-        $guild_rank = $sqlc->result($sqlc->query('SELECT rname FROM guild_rank WHERE guildid ='.$char_data[CHAR_DATA_OFFSET_GUILD_ID].' AND rid='.$mrank.''), 0, 'rname');
+        $guild_rank = $sqlc->result($sqlc->query('SELECT rname FROM guild_rank WHERE guildid ='.$char_data[CHAR_DATA_OFFSET_GUILD_ID].' AND rid='.$char_data[CHAR_DATA_OFFSET_GUILD_RANK].''), 0, 'rname');
       }
       else
       {
@@ -235,6 +240,8 @@ function char_main(&$sqlr, &$sqlc)
       }
       else
         $output .='
+                <li><a href="char_talent.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['talents'].'</a></li>
+                <li><a href="char_achieve.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['achievements'].'</a></li>
               </ul>
             </div>
             <div id="tab_content">
@@ -694,7 +701,7 @@ function char_main(&$sqlr, &$sqlc)
 
       // only higher level GM with delete access can edit character
       //  character edit allows removal of character items, so delete permission is needed
-      if ( ($user_lvl > $owner_gmlvl) && ($user_lvl >= $action_permission['delete']) )
+      if ( ($user_lvl > $owner_gmlvl) && ($user_lvl >= $action_permission['edit']) )
       {
                   makebutton($lang_char['edit_button'], 'char_edit.php?id='.$id.'&amp;realm='.$realmid.'', 130);
         $output .= '

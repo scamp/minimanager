@@ -273,7 +273,7 @@ function lang_footer()
   $lang_footer = array
   (
     'bugs_to_admin' => 'Problems and bug reports to',
-    'site_admin' => 'Site Admin',
+    'site_admin' => 'Server Admin',
   );
   return $lang_footer;
 }

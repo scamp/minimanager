@@ -28,7 +28,7 @@ function top100($realmid, &$sqlr, &$sqlc)
   $dir = (isset($_GET['dir'])) ? $sqlc->quote_smart($_GET['dir']) : 1;
   if (preg_match('/^[01]{1}$/', $dir)); else $dir=1;
 
-  $order_dir = ($dir) ? 'DESC' : 'DESC';
+  $order_dir = ($dir) ? 'DESC' : 'ASC';
   $dir = ($dir) ? 0 : 1;
   //==========================$_GET and SECURE end========================
 
@@ -77,7 +77,9 @@ function top100($realmid, &$sqlr, &$sqlc)
     CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_HONOR_POINTS+1).'),      " ", -1) AS UNSIGNED) AS honor,
     CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_HONOR_KILL+1).'),        " ", -1) AS UNSIGNED) AS kills,
     CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_ARENA_POINTS+1).'),      " ", -1) AS UNSIGNED) AS arena
-    FROM characters ORDER BY '.$order_by.' '.$order_dir.' LIMIT '.$start.', '.$itemperpage.'');
+    FROM characters 
+    WHERE account NOT IN (SELECT id FROM realmd.account WHERE gmlevel >2)
+    ORDER BY '.$order_by.' '.$order_dir.' LIMIT '.$start.', '.$itemperpage.'');
 
 
   //==========================top tage navigaion starts here========================

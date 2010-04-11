@@ -83,7 +83,7 @@ $output .= "<center>
  <td colspan=\"8\">".get_map_name($char[9], $sqlm)." - ".get_zone_name($char[12], $sqlm)."</td>
 </tr>
 <tr>
- <td colspan=\"8\">{$lang_char['username']}: <input type=\"text\" name=\"owner_name\" size=\"20\" maxlength=\"25\" value=\"$owner_name\" /> | {$lang_char['acc_id']}: $owner_acc_id</td>
+ <td colspan=\"8\">{$lang_char['username']}: <input type=\"text\" name=\"owner_name\" size=\"20\" maxlength=\"25\" value=\"$owner_name\" readonly=\"yes\" /> | {$lang_char['acc_id']}: $owner_acc_id</td>
 </tr>
 <tr>
  <td colspan=\"8\">{$lang_char['guild']}: $guild_name | {$lang_char['rank']}: $guild_rank</td>

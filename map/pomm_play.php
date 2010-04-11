@@ -34,11 +34,11 @@ require_once "../libs/js/JsHttpRequest/Php.php";
 $JsHttpRequest = new Subsys_JsHttpRequest_Php("utf-8");
 
 $realm_db = new DBLayer($hostr, $userr, $passwordr, $dbr);
-if(!$realm_db->isValid())
-{
-    $_RESULT['status']['online'] = 2;
-    exit();
-}
+#if(!$realm_db->isValid())
+#{
+#    $_RESULT['status']['online'] = 2;
+#    exit();
+#}
 $realm_db->query("SET NAMES $database_encoding");
 
 $gm_online = 0;
@@ -49,11 +49,11 @@ if($query)
         $gm_accounts = explode(' ', $result[0]);
 $groups = array();
 $characters_db = new DBLayer($host, $user, $password, $db);
-if(!$characters_db->isValid())
-{
-    $_RESULT['status']['online'] = 2;
-    exit();
-}
+#if(!$characters_db->isValid())
+#{
+#    $_RESULT['status']['online'] = 2;
+#    exit();
+#}
 $characters_db->query("SET NAMES $database_encoding");
 $query = $characters_db->query("SELECT `leaderGuid`,`memberGuid` FROM `group_member` WHERE `memberGuid` IN(SELECT `guid` FROM `characters` WHERE `online`='1')");
 if($query)

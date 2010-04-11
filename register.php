@@ -244,17 +244,21 @@ function register(){
       $output .= "<tr><td colspan=\"2\"><hr /></td></tr>
   <tr>
      <td colspan=\"2\">{$lang_register['read_terms']}.</td>
-  </tr>
-  <tr><td colspan=\"2\"><hr /></td></tr>
-  <tr><td>";
+  </tr>";
 
-  $terms = "<textarea rows=\'18\' cols=\'80\' readonly=\'readonly\'>";
-  $fp = fopen("mail_templates/terms.tpl", 'r') or die (error("Couldn't Open terms.tpl File!"));
-  while (!feof($fp)) $terms .= fgets($fp, 1024);
-  fclose($fp);
-  $terms .= "</textarea>";
 
-    makebutton($lang_register['create_acc_button'], "javascript:answerBox('{$lang_register['terms']}<br />$terms', 'javascript:do_submit_data()')",150);
+	$terms = "<textarea cols=75 rows=48 readonly=\'readonly\'>";
+ 	$fp = fopen("mail_templates/terms.tpl", 'r') or die (error("Couldn't Open terms.tpl File!"));
+ 	while (!feof($fp)) $terms .= fgets($fp, 1024);
+ 	fclose($fp);
+ 	$terms .= "</textarea>";
+
+$output .= "<tr><td colspan=2 align=center>";
+$output .=$terms;
+$output .="</td></tr>	<tr><td colspan=\"2\"><hr /></td></tr>
+<tr><td>";
+
+makebutton($lang_register['create_acc_button'], "javascript:do_submit_data()",150);
 $output .= "</td><td>";
     makebutton($lang_global['back'], "login.php", 328);
  $output .= "</td></tr>
@@ -276,7 +280,7 @@ function pass_recovery(){
     <table class=\"flat\">
   <tr>
      <td valign=\"top\">{$lang_register['username']} :</td>
-    <td><input type=\"text\" name=\"username\" size=\"45\" maxlength=\"14\" /><br />
+    <td><input type=\"text\" name=\"username\" size=\"45\" maxlength=\"32\" /><br />
     {$lang_register['user_pass_rec_desc']}<br />
   </td>
   </tr>
@@ -342,7 +346,7 @@ function do_pass_recovery(){
 
   $mail->WordWrap = 50;
   $mail->From = $from_mail;
-  $mail->FromName = "$title Admin";
+  $mail->FromName = "UAWOW.COM";
   $mail->Subject = $subject;
   $mail->IsHTML(true);
   $mail->Body = $body;
