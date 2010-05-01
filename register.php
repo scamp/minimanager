@@ -10,9 +10,8 @@ function doregister(){
  global $lang_global, $characters_db, $realm_db, $realm_id, $disable_acc_creation, $limit_acc_per_ip, $valid_ip_mask,
        $send_mail_on_creation, $create_acc_locked, $from_mail, $mailer_type, $smtp_cfg, $title, $defaultoption, $server_type;
 
- if (($_POST['security_code']) != ($_SESSION['security_code'])) {
-   redirect("register.php?err=13");
- }
+ if(!valid_captcha($_POST['security_code']))
+      redirect("register.php?err=13");
 
  if ( empty($_POST['pass']) || empty($_POST['email']) || empty($_POST['username']) ) {
    redirect("register.php?err=1");
@@ -90,7 +89,7 @@ function doregister(){
     $sql->close();
     redirect("register.php?err=14");
   }
-  
+
   //Username check
   $result = $sql->query("SELECT username FROM account WHERE username='$user_name' $per_ip");
   if ($sql->num_rows($result)){
@@ -112,8 +111,8 @@ function doregister(){
       $result = $sql->query("INSERT INTO account (username,sha_pass_hash,email, joindate,last_ip,failed_logins,locked,last_login,expansion)
               VALUES (UPPER('$user_name'),'$pass','$mail',now(),'$last_ip',0,$create_acc_locked,NULL,$expansion)");
       $query_result = mysql_fetch_assoc($sql->query("SELECT id FROM account WHERE username = '$user_name'"));
-          $result = $sql->query("INSERT INTO account_access (`id`,`gmlevel`) VALUES ('".$query_result['id']."','0')");	
-        }  
+          $result = $sql->query("INSERT INTO account_access (`id`,`gmlevel`) VALUES ('".$query_result['id']."','0')");
+        }
     else
       $result = $sql->query("INSERT INTO account (username,sha_pass_hash,gmlevel,email, joindate,last_ip,failed_logins,locked,last_login,active_realm_id,expansion)
               VALUES (UPPER('$user_name'),'$pass',0,'$mail',now(),'$last_ip',0,$create_acc_locked,NULL,0,$expansion)");
@@ -272,7 +271,8 @@ $output .= "</td><td>";
 // PRINT PASSWORD RECOVERY FORM
 //#####################################################################################################
 function pass_recovery(){
- global $lang_register, $lang_global, $output;
+ global $lang_register, $lang_global, $output, $enable_captcha, $lang_captcha;
+
  $output .= "<center>
   <fieldset class=\"half_frame\">
   <legend>{$lang_register['recover_acc_password']}</legend>
@@ -288,8 +288,18 @@ function pass_recovery(){
      <td valign=\"top\">{$lang_register['email']} :</td>
      <td><input type=\"text\" name=\"email\" size=\"45\" maxlength=\"225\" /><br />
    {$lang_register['mail_pass_rec_desc']}</td>
-  </tr>
-  <tr><td>";
+  </tr>";
+ if ( $enable_captcha ) {
+      $output .= "<tr><td></td>
+    <td><img src=\"libs/captcha/CaptchaSecurityImages.php?width=300&height=80&characters=6\" /><br /></td>
+    </tr>
+    <tr>
+    <td valign=\"top\">{$lang_captcha['security_code']}:</td>
+    <td><input type=\"text\" name=\"security_code\" size=\"45\" /><br />
+    </td>
+    </tr>";
+ }
+  $output .= '<tr><td>';
     makebutton($lang_register['recover_pass'], "javascript:do_submit()",150);
 $output .= "</td><td>";
     makebutton($lang_global['back'], "javascript:window.history.back()", 328);
@@ -306,6 +316,12 @@ function do_pass_recovery(){
  global $lang_global, $realm_db, $from_mail, $mailer_type, $smtp_cfg, $title;
 
  if ( empty($_POST['username']) || empty($_POST['email']) ) redirect("register.php?action=pass_recovery&err=1");
+
+ if(!valid_captcha(isset($_POST['security_code'])?$_POST['security_code']:'')){
+      failed_login();
+      add_to_log($_SESSION['uname'].' Pass Recovery Failed (Login:'.$_POST['username'].')');
+      redirect("register.php?action=pass_recovery&err=13");
+      }
 
  $sql = new SQL;
  $sql->connect($realm_db['addr'], $realm_db['user'], $realm_db['pass'], $realm_db['name']);
@@ -385,7 +401,7 @@ function do_pass_activate(){
   $id = $sql->result($result, 0, 'id');
   if (substr(sha1(strtoupper($sql->result($result, 0, 'username'))),0,7) == $pass){
     $sql->query("UPDATE account SET sha_pass_hash=SHA1(CONCAT(UPPER('$username'),':',UPPER('$pass'))), v=0, s=0 WHERE id = '$id'");
-    add_to_log(" Recovered Account ID ".$id." ".$username);
+    add_to_log($_SESSION['uname'].'  Recovered Account ID '.$id.' '.$username);
     redirect("login.php");
     }
 
@@ -460,23 +476,25 @@ unset($err);
 $output .= "</div>";
 
 $action = (isset($_GET['action'])) ? $_GET['action'] : NULL;
-
-switch ($action){
-case "doregister":
-   doregister();
-   break;
-case "pass_recovery":
-   pass_recovery();
-   break;
-case "do_pass_recovery":
-   do_pass_recovery();
-   break;
-case "do_pass_activate":
-   do_pass_activate();
-   break;
-default:
-    register();
-}
+if(access_deny())
+    $output .= '<center><br>Access Deny!<br>Too many wrong logins.<br></center>';
+    else
+    switch ($action){
+    case "doregister":
+       doregister();
+       break;
+    case "pass_recovery":
+       pass_recovery();
+       break;
+    case "do_pass_recovery":
+       do_pass_recovery();
+       break;
+    case "do_pass_activate":
+       do_pass_activate();
+       break;
+    default:
+        register();
+    }
 
 unset($action);
 unset($action_permission);

@@ -13,6 +13,12 @@ function dologin(&$sqlr)
   if (empty($_POST['user']) || empty($_POST['pass']))
     redirect('login.php?error=2');
 
+  if(!valid_captcha(isset($_POST['security_code'])?$_POST['security_code']:'')){
+      failed_login();
+      add_to_log('Failed login');
+      redirect("login.php?error=7");
+   }
+
   $user_name  = $sqlr->quote_smart($_POST['user']);
   $user_pass  = $sqlr->quote_smart($_POST['pass']);
 
@@ -23,7 +29,7 @@ function dologin(&$sqlr)
     $result = $sqlr->query('SELECT account.id, username, gmlevel FROM account LEFT JOIN account_access ON account.id=account_access.id WHERE username = \''.$user_name.'\' AND sha_pass_hash = \''.$user_pass.'\'');
   else
     $result = $sqlr->query('SELECT id, gmlevel, username FROM account WHERE username = \''.$user_name.'\' AND sha_pass_hash = \''.$user_pass.'\'');
-  
+
   unset($user_name);
 
   if (1 == $sqlr->num_rows($result))
@@ -47,17 +53,17 @@ function dologin(&$sqlr)
 
       if (isset($_POST['remember']) && $_POST['remember'] != '')
       {
-        setcookie(   'uname', $_SESSION['uname'], time()+60*60*24*7);
-        setcookie('realm_id', $_SESSION['realm_id'], time()+60*60*24*7);
-        setcookie(  'p_hash', $user_pass, time()+60*60*24*7);
+        setcookie(   'uname', $_SESSION['uname'], time()+60*60*24);
+        setcookie('realm_id', $_SESSION['realm_id'], time()+60*60*24);
+        setcookie(  'p_hash', $user_pass, time()+60*60*24);
       }
-      add_to_log($_SESSION['uname']." Login Successful");
+      add_to_log($_SESSION['uname'].' Login Successful');
       redirect('index.php');
     }
   }
   else
   {
-    add_to_log($_SESSION['uname']." Login Failed");
+    add_to_log($_SESSION['uname'].' Login Failed');
     redirect('login.php?error=1');
   }
 }
@@ -69,7 +75,7 @@ function dologin(&$sqlr)
 function login(&$sqlr)
 {
   global $output, $lang_login,
-    $characters_db, $server, $remember_me_checked;
+    $characters_db, $server, $remember_me_checked, $lang_captcha, $enable_captcha;
 
   $output .= '
           <center>
@@ -121,6 +127,16 @@ function login(&$sqlr)
   else
     $output .= '
                   <input type="hidden" name="realm" value="'.$sqlr->result($result, 0, 'id').'" />';
+if ( $enable_captcha ) {
+      $output .= "<tr>
+    <td><img src=\"libs/captcha/CaptchaSecurityImages.php?width=325&height=85&characters=6\" /><br /><br /></td>
+    </tr>
+    <tr>
+    <td valign=\"top\">{$lang_captcha['security_code']}:
+    <input type=\"text\" name=\"security_code\" size=\"20\" /><br />
+    </td>
+    </tr>";
+}
   $output .= '
                   <tr>
                     <td>
@@ -172,7 +188,10 @@ function login(&$sqlr)
 function do_cookie_login(&$sqlr)
 {
   global $server_type;
-  
+
+  if(access_deny())
+      return;
+
   if (empty($_COOKIE['uname']) || empty($_COOKIE['p_hash']) || empty($_COOKIE['realm_id']))
     redirect('login.php?error=2');
 
@@ -183,7 +202,7 @@ function do_cookie_login(&$sqlr)
     $result = $sqlr->query('SELECT account.id, username, gmlevel FROM account LEFT JOIN account_access ON account.id=account_access.id WHERE username = \''.$user_name.'\' AND sha_pass_hash = \''.$user_pass.'\'');
   else
     $result = $sqlr->query('SELECT id, gmlevel, username FROM account WHERE username = \''.$user_name.'\' AND sha_pass_hash = \''.$user_pass.'\'');
-  
+
   unset($user_name);
   unset($user_pass);
 
@@ -227,6 +246,7 @@ if (isset($_COOKIE["uname"]) && isset($_COOKIE["p_hash"]) && isset($_COOKIE["rea
 $err = (isset($_GET['error'])) ? $_GET['error'] : NULL;
 
 $lang_login = lang_login();
+$lang_captcha = lang_captcha();
 
 $output .= '
           <div class="top">';
@@ -246,6 +266,9 @@ elseif (5 == $err)
 elseif (6 == $err)
   $output .=  '
             <h1><font class="error">'.$lang_login['after_registration'].'</font></h1>';
+elseif (7 == $err)
+  $output .=  '
+            <h1><font class="error">'.$lang_captcha['invalid_code'].'</font></h1>';
 else
   $output .=  '
             <h1>'.$lang_login['enter_valid_logon'].'</h1>';
@@ -257,14 +280,17 @@ $output .= '
 
 $action = (isset($_GET['action'])) ? $_GET['action'] : NULL;
 
-if ('dologin' === $action)
-  dologin($sqlr);
-else
-  login($sqlr);
+if(access_deny())
+    $output .= '<center><br>Access Deny!<br>Too many wrong logins.<br></center>';
+    elseif ('dologin' === $action)
+          dologin($sqlr);
+        else
+          login($sqlr);
 
 unset($action);
 unset($action_permission);
 unset($lang_login);
+unset($lang_captcha);
 
 require_once 'footer.php';
 

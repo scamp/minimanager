@@ -231,4 +231,28 @@ function direct($col)
 	$d=(isset($_GET['dir'])?intval($_GET['dir']):0);
 	return ($col==$o?($d?0:1):1);
 }
+
+function valid_captcha($code){
+    global $enable_captcha;
+    if(!$enable_captcha)
+        return true;
+    if(empty($_SESSION['security_code']))
+        return false;
+    return ($code === $_SESSION['security_code']);
+}
+
+function failed_login(){
+    if(isset($_SESSION['failed_login']))
+        $_SESSION['failed_login']++;
+    else
+        $_SESSION['failed_login'] = 1;
+    $_SESSION['last_failed_login'] = time();
+}
+
+function access_deny(){
+   if(empty($_SESSION['failed_login']) || empty($_SESSION['last_failed_login']))
+       return false;
+   return ($_SESSION['failed_login'] >= 5 && $_SESSION['last_failed_login'] + 300 > time());
+}
+
 ?>
