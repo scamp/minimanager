@@ -23,11 +23,9 @@ function browse_teams()
   $order_by = (isset($_GET['order_by'])) ? $sqlc->quote_smart($_GET['order_by']) : "atid";
   if (!preg_match("/^[_[:lower:]]{1,17}$/", $order_by)) $order_by="atid";
 
-  $dir = (isset($_GET['dir'])) ? $sqlc->quote_smart($_GET['dir']) : 1;
-  if (!preg_match("/^[01]{1}$/", $dir)) $dir=1;
+  $dir = (isset($_GET['dir'])) ? intval($_GET['dir']) : 1;
 
-  $order_dir = ($dir) ? "ASC" : "DESC";
-  $dir = ($dir) ? 0 : 1;
+  $order_dir = ($dir) ? "DESC" : "ASC";
   //==========================$_GET and SECURE end=============================
   //==========================Browse/Search CHECK==============================
   $search_by ='';
@@ -38,6 +36,10 @@ function browse_teams()
     $search_by = $sqlc->quote_smart($_GET['search_by']);
     $search_menu = array('atname', 'leadername', 'atid');
     if (!in_array($search_by, $search_menu)) $search_by = 'atid';
+    $team_type = isset($_GET['ttype'])?intval($_GET['ttype']):0;
+       if($team_type == 2 || $team_type == 3 || $team_type == 5)
+          $where = ' AND arena_team.type='.$team_type;
+       else $where = '';
 
     switch($search_by)
     {
@@ -48,7 +50,7 @@ function browse_teams()
           rating AS atrating, games as atgames, wins as atwins
           FROM arena_team, arena_team_stats
           WHERE arena_team.arenateamid = arena_team_stats.arenateamid
-          AND arena_team.name LIKE '%$search_value%'
+          AND arena_team.name LIKE '%$search_value%'$where
           ORDER BY $order_by $order_dir LIMIT $start, $itemperpage");
       $query_1 = $sqlc->query("SELECT count(*) FROM arena_team
           WHERE arena_team.name LIKE '%$search_value%'");
@@ -61,7 +63,7 @@ function browse_teams()
           FROM arena_team, arena_team_stats
           WHERE arena_team.arenateamid = arena_team_stats.arenateamid
           AND arena_team.captainguid in
-          (SELECT guid from characters where name like '%$search_value%')
+          (SELECT guid from characters where name like '%$search_value%')$where
           ORDER BY $order_by $order_dir LIMIT $start, $itemperpage");
         $query_1 = $sqlc->query("SELECT count(*) FROM arena_team
           WHERE arena_team.captainguid in
@@ -74,7 +76,7 @@ function browse_teams()
           rating AS atrating, games as atgames, wins as atwins
           FROM arena_team, arena_team_stats
           WHERE arena_team.arenateamid = arena_team_stats.arenateamid
-          AND arena_team.arenateamid ='$search_value'
+          AND arena_team.arenateamid ='$search_value'$where
           ORDER BY $order_by $order_dir LIMIT $start, $itemperpage");
         $query_1 = $sqlc->query("SELECT count(*) FROM arena_team
             arena_team.arenateamid ='$search_value'");
@@ -121,6 +123,12 @@ function browse_teams()
                           <option value=\"leadername\"".($search_by == 'leadername' ? " selected=\"selected\"" : "").">{$lang_arenateam['by_team_leader']}</option>
                           <option value=\"atid\"".($search_by == 'atid' ? " selected=\"selected\"" : "").">{$lang_arenateam['by_id']}</option>
                         </select>
+                        <select name=\"ttype\">
+                        	<option value=0>All types</option>
+                        	<option value=2>2 VS 2</option>
+                        	<option value=3>3 VS 3</option>
+                        	<option value=5>5 VS 5</option>
+                        </select>
                       </form>
                     </td>
                     <td>";
@@ -141,15 +149,15 @@ function browse_teams()
   $output .= "
           <table class=\"lined\">
             <tr>
-              <th width=\"1%\"><a href=\"arenateam.php?order_by=atid&amp;start=$start".( $search_value && $search_by ? "&amp;search_by=$search_by&amp;search_value=$search_value" : "" )."&amp;dir=$dir\">".($order_by=='atid' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" /> " : "")."{$lang_arenateam['id']}</a></th>
-              <th width=\"1%\"><a href=\"arenateam.php?order_by=atname&amp;start=$start".( $search_value && $search_by ? "&amp;search_by=$search_by&amp;search_value=$search_value" : "" )."&amp;dir=$dir\">".($order_by=='atname' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" /> " : "")."{$lang_arenateam['arenateam_name']}</a></th>
-              <th width=\"1%\"><a href=\"arenateam.php?order_by=lname&amp;start=$start".( $search_value && $search_by ? "&amp;search_by=$search_by&amp;search_value=$search_value" : "" )."&amp;dir=$dir\">".($order_by=='lname' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" /> " : "")."{$lang_arenateam['captain']}</a></th>
-              <th width=\"1%\"><a href=\"arenateam.php?order_by=attype&amp;start=$start".( $search_value && $search_by ? "&amp;search_by=$search_by&amp;search_value=$search_value" : "" )."&amp;dir=$dir\">".($order_by=='attype' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" /> " : "")."{$lang_arenateam['type']}</a></th>
-              <th width=\"1%\"><a href=\"arenateam.php?order_by=tot_chars&amp;start=$start".( $search_value && $search_by ? "&amp;search_by=$search_by&amp;search_value=$search_value" : "" )."&amp;dir=$dir\">".($order_by=='tot_chars' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" /> " : "")."{$lang_arenateam['members']}</a></th>
-              <th width=\"1%\"><a href=\"arenateam.php?order_by=arenateam_online&amp;start=$start".( $search_value && $search_by ? "&amp;search_by=$search_by&amp;search_value=$search_value" : "" )."&amp;dir=$dir\">".($order_by=='arenateam_online' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" /> " : "")."{$lang_arenateam['arenateam_online']}</a></th>
-              <th width=\"1%\"><a href=\"arenateam.php?order_by=rating&amp;start=$start".( $search_value && $search_by ? "&amp;search_by=$search_by&amp;search_value=$search_value" : "" )."&amp;dir=$dir\">".($order_by=='rating' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" /> " : "")."{$lang_arenateam['rating']}</a></th>
-              <th width=\"1%\"><a href=\"arenateam.php?order_by=games&amp;start=$start".( $search_value && $search_by ? "&amp;search_by=$search_by&amp;search_value=$search_value" : "" )."&amp;dir=$dir\">".($order_by=='games' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" /> " : "")."{$lang_arenateam['games']}</a></th>
-              <th width=\"1%\"><a href=\"arenateam.php?order_by=wins&amp;start=$start".( $search_value && $search_by ? "&amp;search_by=$search_by&amp;search_value=$search_value" : "" )."&amp;dir=$dir\">".($order_by=='wins' ? "<img src=\"img/arr_".($dir ? "up" : "dw").".gif\" /> " : "")."{$lang_arenateam['wins']}</a></th>
+              <th width=\"1%\"><a href=\"arenateam.php?order_by=atid&amp;start=$start".( $search_value && $search_by ? "&amp;search_by=$search_by&amp;search_value=$search_value" : "" )."&amp;dir=".direct('atid')."\">".($order_by=='atid' ? "<img src=\"img/arr_".(direct('atid') ? "up" : "dw").".gif\" /> " : "")."{$lang_arenateam['id']}</a></th>
+              <th width=\"1%\"><a href=\"arenateam.php?order_by=atname&amp;start=$start".( $search_value && $search_by ? "&amp;search_by=$search_by&amp;search_value=$search_value" : "" )."&amp;dir=".direct('atname')."\">".($order_by=='atname' ? "<img src=\"img/arr_".(direct('atname') ? "up" : "dw").".gif\" /> " : "")."{$lang_arenateam['arenateam_name']}</a></th>
+              <th width=\"1%\"><a href=\"arenateam.php?order_by=lname&amp;start=$start".( $search_value && $search_by ? "&amp;search_by=$search_by&amp;search_value=$search_value" : "" )."&amp;dir=".direct('lname')."\">".($order_by=='lname' ? "<img src=\"img/arr_".(direct('lname') ? "up" : "dw").".gif\" /> " : "")."{$lang_arenateam['captain']}</a></th>
+              <th width=\"1%\"><a href=\"arenateam.php?order_by=attype&amp;start=$start".( $search_value && $search_by ? "&amp;search_by=$search_by&amp;search_value=$search_value" : "" )."&amp;dir=".direct('attype')."\">".($order_by=='attype' ? "<img src=\"img/arr_".(direct('attype') ? "up" : "dw").".gif\" /> " : "")."{$lang_arenateam['type']}</a></th>
+              <th width=\"1%\"><a href=\"arenateam.php?order_by=tot_chars&amp;start=$start".( $search_value && $search_by ? "&amp;search_by=$search_by&amp;search_value=$search_value" : "" )."&amp;dir=".direct('tot_chars')."\">".($order_by=='tot_chars' ? "<img src=\"img/arr_".(direct('tot_chars') ? "up" : "dw").".gif\" /> " : "")."{$lang_arenateam['members']}</a></th>
+              <th width=\"1%\"><a href=\"arenateam.php?order_by=arenateam_online&amp;start=$start".( $search_value && $search_by ? "&amp;search_by=$search_by&amp;search_value=$search_value" : "" )."&amp;dir=".direct('arenateam_online')."\">".($order_by=='arenateam_online' ? "<img src=\"img/arr_".(direct('arenateam_online') ? "up" : "dw").".gif\" /> " : "")."{$lang_arenateam['arenateam_online']}</a></th>
+              <th width=\"1%\"><a href=\"arenateam.php?order_by=rating&amp;start=$start".( $search_value && $search_by ? "&amp;search_by=$search_by&amp;search_value=$search_value" : "" )."&amp;dir=".direct('rating')."\">".($order_by=='rating' ? "<img src=\"img/arr_".(direct('rating') ? "up" : "dw").".gif\" /> " : "")."{$lang_arenateam['rating']}</a></th>
+              <th width=\"1%\"><a href=\"arenateam.php?order_by=games&amp;start=$start".( $search_value && $search_by ? "&amp;search_by=$search_by&amp;search_value=$search_value" : "" )."&amp;dir=".direct('games')."\">".($order_by=='games' ? "<img src=\"img/arr_".(direct('games') ? "up" : "dw").".gif\" /> " : "")."{$lang_arenateam['games']}</a></th>
+              <th width=\"1%\"><a href=\"arenateam.php?order_by=wins&amp;start=$start".( $search_value && $search_by ? "&amp;search_by=$search_by&amp;search_value=$search_value" : "" )."&amp;dir=".direct('wins')."\">".($order_by=='wins' ? "<img src=\"img/arr_".(direct('wins') ? "up" : "dw").".gif\" /> " : "")."{$lang_arenateam['wins']}</a></th>
             </tr>";
   while ($data = $sqlc->fetch_row($query))
   {

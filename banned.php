@@ -25,11 +25,10 @@ function show_list()
   $order_by = (isset($_GET['order_by'])) ? $sqlr->quote_smart($_GET['order_by']) : "$key_field";
   if (!preg_match("/^[_[:lower:]]{1,12}$/", $order_by)) $order_by="$key_field";
 
-  $dir = (isset($_GET['dir'])) ? $sqlr->quote_smart($_GET['dir']) : 1;
-  if (!preg_match("/^[01]{1}$/", $dir)) $dir=1;
+  $dir = (isset($_GET['dir'])) ? intval($_GET['dir']) : 1;
 
-  $order_dir = ($dir) ? "ASC" : "DESC";
-  $dir = ($dir) ? 0 : 1;
+  $order_dir = ($dir) ? "DESC" : "ASC";
+
   //==========================$_GET and SECURE end=============================
 
   $query_1 = $sqlr->query("SELECT count(*) FROM $ban_type");
@@ -62,11 +61,11 @@ function show_list()
           <table class=\"lined\">
             <tr>
               <th width=\"5%\">{$lang_global['delete_short']}</th>
-              <th width=\"19%\"><a href=\"banned.php?order_by=$key_field&amp;ban_type=$ban_type&amp;dir=$dir\"".($order_by==$key_field ? " class=\"$order_dir\"" : "").">{$lang_banned['ip_acc']}</a></th>
-              <th width=\"18%\"><a href=\"banned.php?order_by=bandate&amp;ban_type=$ban_type&amp;dir=$dir\"".($order_by=='bandate' ? " class=\"$order_dir\"" : "").">{$lang_banned['bandate']}</a></th>
-              <th width=\"18%\"><a href=\"banned.php?order_by=unbandate&amp;ban_type=$ban_type&amp;dir=$dir\"".($order_by=='unbandate' ? " class=\"$order_dir\"" : "").">{$lang_banned['unbandate']}</a></th>
-              <th width=\"15%\"><a href=\"banned.php?order_by=bannedby&amp;ban_type=$ban_type&amp;dir=$dir\"".($order_by=='bannedby' ? " class=\"$order_dir\"" : "").">{$lang_banned['bannedby']}</a></th>
-              <th width=\"25%\"><a href=\"banned.php?order_by=banreason&amp;ban_type=$ban_type&amp;dir=$dir\"".($order_by=='banreason' ? " class=\"$order_dir\"" : "").">{$lang_banned['banreason']}</a></th>
+              <th width=\"19%\"><a href=\"banned.php?order_by=$key_field&amp;ban_type=$ban_type&amp;dir=".direct($key_field)."\"".($order_by==$key_field ? " class=\"$order_dir\"" : "").">{$lang_banned['ip_acc']}</a></th>
+              <th width=\"18%\"><a href=\"banned.php?order_by=bandate&amp;ban_type=$ban_type&amp;dir=".direct('bandate')."\"".($order_by=='bandate' ? " class=\"$order_dir\"" : "").">{$lang_banned['bandate']}</a></th>
+              <th width=\"18%\"><a href=\"banned.php?order_by=unbandate&amp;ban_type=$ban_type&amp;dir=".direct('unbandate')."\"".($order_by=='unbandate' ? " class=\"$order_dir\"" : "").">{$lang_banned['unbandate']}</a></th>
+              <th width=\"15%\"><a href=\"banned.php?order_by=bannedby&amp;ban_type=$ban_type&amp;dir=".direct('bannedby')."\"".($order_by=='bannedby' ? " class=\"$order_dir\"" : "").">{$lang_banned['bannedby']}</a></th>
+              <th width=\"25%\"><a href=\"banned.php?order_by=banreason&amp;ban_type=$ban_type&amp;dir=".direct('banreason')."\"".($order_by=='banreason' ? " class=\"$order_dir\"" : "").">{$lang_banned['banreason']}</a></th>
             </tr>";
 
   while ($ban = $sqlr->fetch_row($result))

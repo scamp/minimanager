@@ -225,4 +225,10 @@ function add_to_log($msg){
     fclose ($logfile);
 }
 
+function direct($col)
+{
+	$o=(isset($_GET['order_by'])?$_GET['order_by']:'');
+	$d=(isset($_GET['dir'])?intval($_GET['dir']):0);
+	return ($col==$o?($d?0:1):1);
+}
 ?>
