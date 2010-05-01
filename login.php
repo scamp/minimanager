@@ -51,11 +51,13 @@ function dologin(&$sqlr)
         setcookie('realm_id', $_SESSION['realm_id'], time()+60*60*24*7);
         setcookie(  'p_hash', $user_pass, time()+60*60*24*7);
       }
+      add_to_log($_SESSION['uname']." Login Successful");
       redirect('index.php');
     }
   }
   else
   {
+    add_to_log($_SESSION['uname']." Login Failed");
     redirect('login.php?error=1');
   }
 }

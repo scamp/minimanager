@@ -385,6 +385,7 @@ function do_pass_activate(){
   $id = $sql->result($result, 0, 'id');
   if (substr(sha1(strtoupper($sql->result($result, 0, 'username'))),0,7) == $pass){
     $sql->query("UPDATE account SET sha_pass_hash=SHA1(CONCAT(UPPER('$username'),':',UPPER('$pass'))), v=0, s=0 WHERE id = '$id'");
+    add_to_log(" Recovered Account ID ".$id." ".$username);
     redirect("login.php");
     }
 

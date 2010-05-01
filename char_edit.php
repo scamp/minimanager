@@ -438,6 +438,8 @@ if ($sql->num_rows($result)){
   $sql->close();
   unset($sql);
 
+  add_to_log($_SESSION['uname']." Teleported or renamed char ID ".$id." to ".$new_name);
+
   if ($result) redirect("char_edit.php?action=edit_char&id=$id&error=3");
     else redirect("char_edit.php?action=edit_char&id=$id&error=4");
   } else {

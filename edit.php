@@ -290,6 +290,7 @@ function doedit_user(&$sqlr, &$sqlc)
 
   if (doupdate_referral($referredby, $sqlr, $sqlc) || $sqlr->affected_rows())
 {
+      add_to_log($_SESSION['uname']." Changed his own password ID ".$user_id." ".$user_name);
       redirect('edit.php?error=3');
 }
   else

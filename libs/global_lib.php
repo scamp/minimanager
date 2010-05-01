@@ -218,5 +218,11 @@ function generate_pagination($base_url, $num_items, $per_page, $start_item, $sta
 
 }
 
+function add_to_log($msg){
+    $to_log="[".date(DATE_RFC822)."] ".$_SERVER['REMOTE_ADDR']." ".$msg."\n";
+    $logfile = fopen("log/manager.log","a+");
+    fwrite ($logfile,$to_log);
+    fclose ($logfile);
+}
 
 ?>

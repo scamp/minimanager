@@ -412,6 +412,7 @@ function result()
 {
   global $lang_global, $output;
   $mess = (isset($_GET['mess'])) ? $_GET['mess'] : NULL;
+  add_to_log($_SESSION['uname']." ".strip_tags($mess));
   $output .= '
         <center>
           <br />

@@ -1211,6 +1211,7 @@ function doedit_user()
                  VALUES ($id, ".time().",".(time()+(365*24*3600)).",'$user_name','$banreason', 1)");
   }
     $sqlr->query("UPDATE account SET email='$mail', $user_pass_change v=0,s=0,failed_logins='$failed',locked='$locked',expansion='$expansion' WHERE id='$id'");
+  add_to_log(" Changed Account ID ".$id." ".$username);
   if ($server_type)
     $sqlr->query("UPDATE account_access SET gmlevel='$gmlevel' WHERE id='$id'");
   if (doupdate_referral($referredby, $id) || $sqlr->affected_rows())
