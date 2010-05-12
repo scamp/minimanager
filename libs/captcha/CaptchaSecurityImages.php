@@ -76,9 +76,9 @@ class CaptchaSecurityImages
 
 }
 
-$width      = isset($_GET['width']) ? $_GET['width'] : '350';
-$height     = isset($_GET['height']) ? $_GET['height'] : '130';
-$characters = isset($_GET['characters']) && 1 < $_GET['characters'] ? $_GET['characters'] : '8';
+$width      = isset($_GET['width']) ? $_GET['width']>600?600:$_GET['width'] : '350';
+$height     = isset($_GET['height']) ? $_GET['height']>200?200:$_GET['height'] : '130';
+$characters = isset($_GET['characters']) && 1 < $_GET['characters'] && 9 > $_GET['characters'] ? $_GET['characters'] : '8';;
 
 $captcha = new CaptchaSecurityImages($width, $height, $characters);
 
