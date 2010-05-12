@@ -31,8 +31,9 @@ if (function_exists ('date_default_timezone_set'))
 function wowhead_tt()
 {
  global $output, $tt_script;
- $output .='<script type="text/javascript" src="'.$tt_script.'"></script>';
-
+ $output .='<script type="text/javascript" src="'.$tt_script.'"></script>
+     <script type="text/javascript" src="libs/js/jquery.js"></script>
+     <script type="text/javascript" src="libs/js/getjsondata.js"></script>';
 }
 
 

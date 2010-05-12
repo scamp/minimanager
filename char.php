@@ -3,10 +3,10 @@
 
 require_once 'header.php';
 require_once 'libs/char_lib.php';
-require_once 'libs/item_lib.php';
-require_once 'libs/spell_lib.php';
+//require_once 'libs/item_lib.php';
+//require_once 'libs/spell_lib.php';
 require_once 'libs/map_zone_lib.php';
-valid_login($action_permission['read']);
+//valid_login($action_permission['read']);
 
 //########################################################################################################################
 // SHOW GENERAL CHARACTERS INFO
@@ -17,6 +17,11 @@ function char_main(&$sqlr, &$sqlc)
     $realm_id, $realm_db, $characters_db, $world_db, $server, $mmfpm_db,
     $action_permission, $user_lvl, $user_name, $user_id,
     $item_datasite, $spell_datasite , $showcountryflag;
+
+    define('DATA_0', 11-CHAR_DATA_OFFSET_MAX_ENERGY-1);
+    define('DATA_1', 11+85-CHAR_DATA_OFFSET_GUILD_RANK-2);
+    define('DATA_2', 11+85+15-(CHAR_DATA_OFFSET_SPELL_CRIT+6)-3);
+    define('DATA_3', 11+85+15+88-CHAR_DATA_OFFSET_ARENA_POINTS-4);
 
   // this page uses wowhead tooltops
   wowhead_tt();
@@ -32,25 +37,35 @@ function char_main(&$sqlr, &$sqlc)
   else
   {
     $realmid = $sqlr->quote_smart($_GET['realm']);
-    if (is_numeric($realmid))
+    if (is_numeric($realmid) && isset($characters_db[$realmid]['addr']))
       $sqlc->connect($characters_db[$realmid]['addr'], $characters_db[$realmid]['user'], $characters_db[$realmid]['pass'], $characters_db[$realmid]['name']);
     else
       $realmid = $realm_id;
   }
 
-  $id = $sqlc->quote_smart($_GET['id']);
-
-  if (is_numeric($id)){
-      $result = $sqlc->query('SELECT account, race FROM characters WHERE guid = '.$id.' LIMIT 1');;
+  if (isset($_GET['id']) && is_numeric($_GET['id'])){
+        $sql_id = ' guid='.$sqlc->quote_smart($_GET['id']);
   }elseif(isset($_GET['name'])){
-      $result = $sqlc->query('SELECT account, race, guid FROM characters WHERE name = "'.addslashes($_GET['name']).'" LIMIT 1');
-      $id=$sqlc->result($result, 0, 'guid');
+        $sql_id = ' name="'.$sqlc->quote_smart($_GET['name']).'"';
   }else error($lang_global['empty_fields']);
 
-  $result = $sqlc->query('SELECT account, race FROM characters WHERE guid = '.$id.' LIMIT 1');
-
+  $result = $sqlc->query('SELECT
+     guid, account, name, race, class, level, online, gender, map, zone, totaltime,
+     CONCAT_WS(",",
+     SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", 36 ), " ", -11),
+     SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", 153 ), " ", -85),
+     SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", 1013 ), " ", -15),
+     SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", 1253 ), " ", -88)
+     ) AS data,
+     SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_SPELL_DAMAGE+6+1).' ), " ", -6) AS spd,
+     SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_EQU_TABARD+2).'), " ", '.(CHAR_DATA_OFFSET_EQU_HEAD-CHAR_DATA_OFFSET_EQU_TABARD-2).') AS items
+     FROM characters WHERE'.$sql_id);
+// data:11, 85, 15, 88; items:38;
   if ($sqlc->num_rows($result))
   {
+    $char = $sqlc->fetch_assoc($result);
+    $id = $char['guid'];
+    $char_data = explode(' ', $char['data']);
     //resrict by owner's gmlvl
     $owner_acc_id = $sqlc->result($result, 0, 'account');
     $query = $sqlr->query('SELECT gmlevel, username FROM account WHERE id = '.$owner_acc_id.'');
@@ -74,20 +89,16 @@ function char_main(&$sqlr, &$sqlc)
     }
 
     if ($user_lvl >= $owner_gmlvl && (($side_v === $side_p) || !$side_v) || ($owner_gmlvl <= 2))
-
     {
-      $result = $sqlc->query('SELECT data, name, race, class, level, zone, map, online, totaltime, gender,
-        account FROM characters WHERE guid = '.$id.'');
-      $char = $sqlc->fetch_assoc($result);
-      $char_data = explode(' ',$char['data']);
 
       $online = ($char['online']) ? $lang_char['online'] : $lang_char['offline'];
 
-      if($char_data[CHAR_DATA_OFFSET_GUILD_ID])
+      if($char_data[CHAR_DATA_OFFSET_GUILD_ID+DATA_1])
       {
-        $guild_name = $sqlc->result($sqlc->query('SELECT name FROM guild WHERE guildid ='.$char_data[CHAR_DATA_OFFSET_GUILD_ID].''), 0, 'name');
-        $guild_name = '<a href="guild.php?action=view_guild&amp;realm='.$realmid.'&amp;error=3&amp;id='.$char_data[CHAR_DATA_OFFSET_GUILD_ID].'" >'.$guild_name.'</a>';
-        $guild_rank = $sqlc->result($sqlc->query('SELECT rname FROM guild_rank WHERE guildid ='.$char_data[CHAR_DATA_OFFSET_GUILD_ID].' AND rid='.$char_data[CHAR_DATA_OFFSET_GUILD_RANK].''), 0, 'rname');
+        $guild_name = $sqlc->result($sqlc->query('SELECT name FROM guild WHERE guildid ='.$char_data[CHAR_DATA_OFFSET_GUILD_ID+DATA_1].''), 0, 'name');
+        $guild_name = '<a href="guild.php?action=view_guild&amp;realm='.$realmid.'&amp;error=3&amp;id='.$char_data[CHAR_DATA_OFFSET_GUILD_ID+DATA_1].'" >'.$guild_name.'</a>';
+        $mrank = $char_data[CHAR_DATA_OFFSET_GUILD_RANK+DATA_1];
+        $guild_rank = $sqlc->result($sqlc->query('SELECT rname FROM guild_rank WHERE guildid ='.$char_data[CHAR_DATA_OFFSET_GUILD_ID+DATA_1].' AND rid='.$mrank.''), 0, 'rname');
       }
       else
       {
@@ -95,91 +106,40 @@ function char_main(&$sqlr, &$sqlc)
         $guild_rank = $lang_global['none'];
       }
 
-      $block       = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_BLOCK]));
-      $block       = round($block[1],2);
-      $dodge       = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_DODGE]));
-      $dodge       = round($dodge[1],2);
-      $parry       = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_PARRY]));
-      $parry       = round($parry[1],2);
-      $crit        = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_MELEE_CRIT]));
-      $crit        = round($crit[1],2);
-      $ranged_crit = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_RANGE_CRIT]));
+      $block = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_BLOCK+DATA_2]));
+      $block = round($block[1],2);
+      $dodge = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_DODGE+DATA_2]));
+      $dodge = round($dodge[1],2);
+      $parry = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_PARRY+DATA_2]));
+      $parry = round($parry[1],2);
+      $crit = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_MELEE_CRIT+DATA_2]));
+      $crit = round($crit[1],2);
+      $mindamage = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_MINDAMAGE+DATA_1]));
+      $mindamage = round($mindamage[1],0);
+      $maxdamage = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_MAXDAMAGE+DATA_1]));
+      $maxdamage = round($maxdamage[1],0);
+      $ranged_crit = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_RANGE_CRIT+DATA_2]));
       $ranged_crit = round($ranged_crit[1],2);
-      $maxdamage   = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_MAXDAMAGE]));
-      $maxdamage   = round($maxdamage[1],0);
-      $mindamage   = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_MINDAMAGE]));
-      $mindamage   = round($mindamage[1],0);
-      $maxrangeddamage = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_MAXRANGEDDAMAGE]));
-      $maxrangeddamage = round($maxrangeddamage[1],0);
-      $minrangeddamage = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_MINRANGEDDAMAGE]));
+      $minrangeddamage = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_MINRANGEDDAMAGE+DATA_1]));
       $minrangeddamage = round($minrangeddamage[1],0);
+      $maxrangeddamage = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_MAXRANGEDDAMAGE+DATA_1]));
+      $maxrangeddamage = round($maxrangeddamage[1],0);
 
       $spell_crit = 100;
       for ($i=0; $i<6; ++$i)
       {
-        $temp = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_SPELL_CRIT+1+$i]));
+        $temp = unpack('f', pack('L', $char_data[CHAR_DATA_OFFSET_SPELL_CRIT+DATA_2+1+$i]));
         if ($temp[1] < $spell_crit)
         $spell_crit = $temp[1];
       }
       $spell_crit = round($spell_crit,2);
+      $spell_damage = min(explode(' ', $char['spd']));
 
-      $spell_damage = 9999;
-      for ($i=0; $i<6; ++$i)
-      {
-        if ($char_data[CHAR_DATA_OFFSET_SPELL_DAMAGE+1+$i] < $spell_damage)
-        $spell_damage = $char_data[CHAR_DATA_OFFSET_SPELL_DAMAGE+1+$i];
-      }
+      $rage       = round($char_data[CHAR_DATA_OFFSET_RAGE+DATA_0] / 10);
+      $maxrage    = round($char_data[CHAR_DATA_OFFSET_MAX_RAGE+DATA_0] / 10);
+      $expertise  = ''.$char_data[CHAR_DATA_OFFSET_EXPERTISE+DATA_2].' / '.$char_data[CHAR_DATA_OFFSET_OFFHAND_EXPERTISE+DATA_2].'';
 
-      $rage       = round($char_data[CHAR_DATA_OFFSET_RAGE] / 10);
-      $maxrage    = round($char_data[CHAR_DATA_OFFSET_MAX_RAGE] / 10);
-      $expertise  = ''.$char_data[CHAR_DATA_OFFSET_EXPERTISE].' / '.$char_data[CHAR_DATA_OFFSET_OFFHAND_EXPERTISE].'';
-
-      $EQU_HEAD      = $char_data[CHAR_DATA_OFFSET_EQU_HEAD];
-      $EQU_NECK      = $char_data[CHAR_DATA_OFFSET_EQU_NECK];
-      $EQU_SHOULDER  = $char_data[CHAR_DATA_OFFSET_EQU_SHOULDER];
-      $EQU_SHIRT     = $char_data[CHAR_DATA_OFFSET_EQU_SHIRT];
-      $EQU_CHEST     = $char_data[CHAR_DATA_OFFSET_EQU_CHEST];
-      $EQU_BELT      = $char_data[CHAR_DATA_OFFSET_EQU_BELT];
-      $EQU_LEGS      = $char_data[CHAR_DATA_OFFSET_EQU_LEGS];
-      $EQU_FEET      = $char_data[CHAR_DATA_OFFSET_EQU_FEET];
-      $EQU_WRIST     = $char_data[CHAR_DATA_OFFSET_EQU_WRIST];
-      $EQU_GLOVES    = $char_data[CHAR_DATA_OFFSET_EQU_GLOVES];
-      $EQU_FINGER1   = $char_data[CHAR_DATA_OFFSET_EQU_FINGER1];
-      $EQU_FINGER2   = $char_data[CHAR_DATA_OFFSET_EQU_FINGER2];
-      $EQU_TRINKET1  = $char_data[CHAR_DATA_OFFSET_EQU_TRINKET1];
-      $EQU_TRINKET2  = $char_data[CHAR_DATA_OFFSET_EQU_TRINKET2];
-      $EQU_BACK      = $char_data[CHAR_DATA_OFFSET_EQU_BACK];
-      $EQU_MAIN_HAND = $char_data[CHAR_DATA_OFFSET_EQU_MAIN_HAND];
-      $EQU_OFF_HAND  = $char_data[CHAR_DATA_OFFSET_EQU_OFF_HAND];
-      $EQU_RANGED    = $char_data[CHAR_DATA_OFFSET_EQU_RANGED];
-      $EQU_TABARD    = $char_data[CHAR_DATA_OFFSET_EQU_TABARD];
-/*
-// reserved incase we want to use back minimanagers' built in tooltip, instead of wowheads'
-// minimanagers' item tooltip needs updating, but it can show enchantments and sockets.
-
-      $equiped_items = array
-      (
-         1 => array(($EQU_HEAD      ? get_item_tooltip($EQU_HEAD)      : 0),($EQU_HEAD      ? get_item_icon($EQU_HEAD)      : 0),($EQU_HEAD      ? get_item_border($EQU_HEAD)      : 0)),
-         2 => array(($EQU_NECK      ? get_item_tooltip($EQU_NECK)      : 0),($EQU_NECK      ? get_item_icon($EQU_NECK)      : 0),($EQU_NECK      ? get_item_border($EQU_NECK)      : 0)),
-         3 => array(($EQU_SHOULDER  ? get_item_tooltip($EQU_SHOULDER)  : 0),($EQU_SHOULDER  ? get_item_icon($EQU_SHOULDER)  : 0),($EQU_SHOULDER  ? get_item_border($EQU_SHOULDER)  : 0)),
-         4 => array(($EQU_SHIRT     ? get_item_tooltip($EQU_SHIRT)     : 0),($EQU_SHIRT     ? get_item_icon($EQU_SHIRT)     : 0),($EQU_SHIRT     ? get_item_border($EQU_SHIRT)     : 0)),
-         5 => array(($EQU_CHEST     ? get_item_tooltip($EQU_CHEST)     : 0),($EQU_CHEST     ? get_item_icon($EQU_CHEST)     : 0),($EQU_CHEST     ? get_item_border($EQU_CHEST)     : 0)),
-         6 => array(($EQU_BELT      ? get_item_tooltip($EQU_BELT)      : 0),($EQU_BELT      ? get_item_icon($EQU_BELT)      : 0),($EQU_BELT      ? get_item_border($EQU_BELT)      : 0)),
-         7 => array(($EQU_LEGS      ? get_item_tooltip($EQU_LEGS)      : 0),($EQU_LEGS      ? get_item_icon($EQU_LEGS)      : 0),($EQU_LEGS      ? get_item_border($EQU_LEGS)      : 0)),
-         8 => array(($EQU_FEET      ? get_item_tooltip($EQU_FEET)      : 0),($EQU_FEET      ? get_item_icon($EQU_FEET)      : 0),($EQU_FEET      ? get_item_border($EQU_FEET)      : 0)),
-         9 => array(($EQU_WRIST     ? get_item_tooltip($EQU_WRIST)     : 0),($EQU_WRIST     ? get_item_icon($EQU_WRIST)     : 0),($EQU_WRIST     ? get_item_border($EQU_WRIST)     : 0)),
-        10 => array(($EQU_GLOVES    ? get_item_tooltip($EQU_GLOVES)    : 0),($EQU_GLOVES    ? get_item_icon($EQU_GLOVES)    : 0),($EQU_GLOVES    ? get_item_border($EQU_GLOVES)    : 0)),
-        11 => array(($EQU_FINGER1   ? get_item_tooltip($EQU_FINGER1)   : 0),($EQU_FINGER1   ? get_item_icon($EQU_FINGER1)   : 0),($EQU_FINGER1   ? get_item_border($EQU_FINGER1)   : 0)),
-        12 => array(($EQU_FINGER2   ? get_item_tooltip($EQU_FINGER2)   : 0),($EQU_FINGER2   ? get_item_icon($EQU_FINGER2)   : 0),($EQU_FINGER2   ? get_item_border($EQU_FINGER2)   : 0)),
-        13 => array(($EQU_TRINKET1  ? get_item_tooltip($EQU_TRINKET1)  : 0),($EQU_TRINKET1  ? get_item_icon($EQU_TRINKET1)  : 0),($EQU_TRINKET1  ? get_item_border($EQU_TRINKET1)  : 0)),
-        14 => array(($EQU_TRINKET2  ? get_item_tooltip($EQU_TRINKET2)  : 0),($EQU_TRINKET2  ? get_item_icon($EQU_TRINKET2)  : 0),($EQU_TRINKET2  ? get_item_border($EQU_TRINKET2)  : 0)),
-        15 => array(($EQU_BACK      ? get_item_tooltip($EQU_BACK)      : 0),($EQU_BACK      ? get_item_icon($EQU_BACK)      : 0),($EQU_BACK      ? get_item_border($EQU_BACK)      : 0)),
-        16 => array(($EQU_MAIN_HAND ? get_item_tooltip($EQU_MAIN_HAND) : 0),($EQU_MAIN_HAND ? get_item_icon($EQU_MAIN_HAND) : 0),($EQU_MAIN_HAND ? get_item_border($EQU_MAIN_HAND) : 0)),
-        17 => array(($EQU_OFF_HAND  ? get_item_tooltip($EQU_OFF_HAND)  : 0),($EQU_OFF_HAND  ? get_item_icon($EQU_OFF_HAND)  : 0),($EQU_OFF_HAND  ? get_item_border($EQU_OFF_HAND)  : 0)),
-        18 => array(($EQU_RANGED    ? get_item_tooltip($EQU_RANGED)    : 0),($EQU_RANGED    ? get_item_icon($EQU_RANGED)    : 0),($EQU_RANGED    ? get_item_border($EQU_RANGED)    : 0)),
-        19 => array(($EQU_TABARD    ? get_item_tooltip($EQU_TABARD)    : 0),($EQU_TABARD    ? get_item_icon($EQU_TABARD)    : 0),($EQU_TABARD    ? get_item_border($EQU_TABARD)    : 0))
-      );
-*/
+      $equip = explode(' ',$char['items']);
 
       $sqlm = new SQL;
       $sqlm->connect($mmfpm_db['addr'], $mmfpm_db['user'], $mmfpm_db['pass'], $mmfpm_db['name']);
@@ -187,29 +147,24 @@ function char_main(&$sqlr, &$sqlc)
       $sqlw = new SQL;
       $sqlw->connect($world_db[$realmid]['addr'], $world_db[$realmid]['user'], $world_db[$realmid]['pass'], $world_db[$realmid]['name']);
 
-      $equiped_items = array
-      (
-         1 => array('',($EQU_HEAD      ? get_item_icon($EQU_HEAD, $sqlm, $sqlw)      : 0),($EQU_HEAD      ? get_item_border($EQU_HEAD, $sqlw)      : 0)),
-         2 => array('',($EQU_NECK      ? get_item_icon($EQU_NECK, $sqlm, $sqlw)      : 0),($EQU_NECK      ? get_item_border($EQU_NECK, $sqlw)      : 0)),
-         3 => array('',($EQU_SHOULDER  ? get_item_icon($EQU_SHOULDER, $sqlm, $sqlw)  : 0),($EQU_SHOULDER  ? get_item_border($EQU_SHOULDER, $sqlw)  : 0)),
-         4 => array('',($EQU_SHIRT     ? get_item_icon($EQU_SHIRT, $sqlm, $sqlw)     : 0),($EQU_SHIRT     ? get_item_border($EQU_SHIRT, $sqlw)     : 0)),
-         5 => array('',($EQU_CHEST     ? get_item_icon($EQU_CHEST, $sqlm, $sqlw)     : 0),($EQU_CHEST     ? get_item_border($EQU_CHEST, $sqlw)     : 0)),
-         6 => array('',($EQU_BELT      ? get_item_icon($EQU_BELT, $sqlm, $sqlw)      : 0),($EQU_BELT      ? get_item_border($EQU_BELT, $sqlw)      : 0)),
-         7 => array('',($EQU_LEGS      ? get_item_icon($EQU_LEGS, $sqlm, $sqlw)      : 0),($EQU_LEGS      ? get_item_border($EQU_LEGS, $sqlw)      : 0)),
-         8 => array('',($EQU_FEET      ? get_item_icon($EQU_FEET, $sqlm, $sqlw)      : 0),($EQU_FEET      ? get_item_border($EQU_FEET, $sqlw)      : 0)),
-         9 => array('',($EQU_WRIST     ? get_item_icon($EQU_WRIST, $sqlm, $sqlw)     : 0),($EQU_WRIST     ? get_item_border($EQU_WRIST, $sqlw)     : 0)),
-        10 => array('',($EQU_GLOVES    ? get_item_icon($EQU_GLOVES, $sqlm, $sqlw)    : 0),($EQU_GLOVES    ? get_item_border($EQU_GLOVES, $sqlw)    : 0)),
-        11 => array('',($EQU_FINGER1   ? get_item_icon($EQU_FINGER1, $sqlm, $sqlw)   : 0),($EQU_FINGER1   ? get_item_border($EQU_FINGER1, $sqlw)   : 0)),
-        12 => array('',($EQU_FINGER2   ? get_item_icon($EQU_FINGER2, $sqlm, $sqlw)   : 0),($EQU_FINGER2   ? get_item_border($EQU_FINGER2, $sqlw)   : 0)),
-        13 => array('',($EQU_TRINKET1  ? get_item_icon($EQU_TRINKET1, $sqlm, $sqlw)  : 0),($EQU_TRINKET1  ? get_item_border($EQU_TRINKET1, $sqlw)  : 0)),
-        14 => array('',($EQU_TRINKET2  ? get_item_icon($EQU_TRINKET2, $sqlm, $sqlw)  : 0),($EQU_TRINKET2  ? get_item_border($EQU_TRINKET2, $sqlw)  : 0)),
-        15 => array('',($EQU_BACK      ? get_item_icon($EQU_BACK, $sqlm, $sqlw)      : 0),($EQU_BACK      ? get_item_border($EQU_BACK, $sqlw)      : 0)),
-        16 => array('',($EQU_MAIN_HAND ? get_item_icon($EQU_MAIN_HAND, $sqlm, $sqlw) : 0),($EQU_MAIN_HAND ? get_item_border($EQU_MAIN_HAND, $sqlw) : 0)),
-        17 => array('',($EQU_OFF_HAND  ? get_item_icon($EQU_OFF_HAND, $sqlm, $sqlw)  : 0),($EQU_OFF_HAND  ? get_item_border($EQU_OFF_HAND, $sqlw)  : 0)),
-        18 => array('',($EQU_RANGED    ? get_item_icon($EQU_RANGED, $sqlm, $sqlw)    : 0),($EQU_RANGED    ? get_item_border($EQU_RANGED, $sqlw)    : 0)),
-        19 => array('',($EQU_TABARD    ? get_item_icon($EQU_TABARD, $sqlm, $sqlw)    : 0),($EQU_TABARD    ? get_item_border($EQU_TABARD, $sqlw)    : 0))
-      );
+      $set_items='';//$equip[0].':'.$equip[CHAR_DATA_OFFSET_EQU_SHOULDER - CHAR_DATA_OFFSET_EQU_HEAD].':'.$equip[CHAR_DATA_OFFSET_EQU_CHEST - CHAR_DATA_OFFSET_EQU_HEAD].':'.$equip[CHAR_DATA_OFFSET_EQU_GLOVES - CHAR_DATA_OFFSET_EQU_HEAD].':'.$equip[CHAR_DATA_OFFSET_EQU_LEGS- CHAR_DATA_OFFSET_EQU_HEAD];
 
+      $a_results = $sqlc->query('SELECT DISTINCT spell FROM character_aura WHERE guid = '.$id.'');
+      $spell_list =array();
+      $spells_div = '';
+      if ($sqlc->num_rows($a_results))
+      {
+        while ($aura = $sqlc->fetch_assoc($a_results))
+        {
+            array_push($spell_list,$aura['spell']);
+                 $spells_div .= '
+                        <a style="padding:2px;" href="'.$spell_datasite.$aura['spell'].'" target="_blank">
+                          <img src="img/INV/INV_blank_32.gif" name="spell'.$aura['spell'].'" alt="'.$aura['spell'].'" width="24" height="24" />
+                        </a>';
+        }
+      }
+
+      $output .= '<script>get_object_inf("'.join(',', $spell_list).'", "spells");get_object_inf("'.join(',', $equip).'", "items");</script>';
       $output .= '
           <!-- start of char.php -->
           <center>
@@ -236,12 +191,11 @@ function char_main(&$sqlr, &$sqlc)
                   <li><a href="char_pets.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['pets'].'</a></li>';
         $output .= '
                   <li><a href="char_rep.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['reputation'].'</a></li>
-                  <li><a href="char_skill.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['skills'].'</a></li>';
+                  <li><a href="char_skill.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['skills'].'</a></li>
+                  <li><a href="char_ateams.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['arena_teams'].'</a></li>';
       }
       else
-        $output .='
-                <li><a href="char_talent.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['talents'].'</a></li>
-                <li><a href="char_achieve.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['achievements'].'</a></li>
+        $output .='<li><a href="char_ateams.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['arena_teams'].'</a></li>
               </ul>
             </div>
             <div id="tab_content">
@@ -257,31 +211,22 @@ function char_main(&$sqlr, &$sqlc)
                       <div>
                         <img src="'.char_get_avatar_img($char['level'], $char['gender'], $char['race'], $char['class'], 0).'" alt="avatar" />
                       </div>
-                      <div>';
-      $a_results = $sqlc->query('SELECT DISTINCT spell FROM character_aura WHERE guid = '.$id.'');
-      if ($sqlc->num_rows($a_results))
-      {
-        while ($aura = $sqlc->fetch_assoc($a_results))
-        {
-                 $output .= '
-                        <a style="padding:2px;" href="'.$spell_datasite.$aura['spell'].'" target="_blank">
-                          <img src="'.spell_get_icon($aura['spell'], $sqlm).'" alt="'.$aura['spell'].'" width="24" height="24" />
-                        </a>';
-        }
-      }
+                      <div id="spell_div">';
+      $output .= $spells_div;
+      unset($spells_div);
       $output .= '
                       </div>
                     </td>
                     <td colspan="4">
                       <font class="bold">
-                        '.$char['name'].' -
+                        '.htmlentities($char['name']).' -
                         <img src="img/c_icons/'.$char['race'].'-'.$char['gender'].'.gif" onmousemove="toolTip(\''.char_get_race_name($char['race']).'\', \'item_tooltip\')" onmouseout="toolTip()" alt="" />
                         <img src="img/c_icons/'.$char['class'].'.gif" onmousemove="toolTip(\''.char_get_class_name($char['class']).'\', \'item_tooltip\')" onmouseout="toolTip()" alt="" />
                         - lvl '.char_get_level_color($char['level']).'
                       </font>
                       <br />'.get_map_name($char['map'], $sqlm).' - '.get_zone_name($char['zone'], $sqlm).'
-                      <br />'.$lang_char['honor_points'].': '.$char_data[CHAR_DATA_OFFSET_HONOR_POINTS].' / '.$char_data[CHAR_DATA_OFFSET_ARENA_POINTS].' - '.$lang_char['honor_kills'].': '.$char_data[CHAR_DATA_OFFSET_HONOR_KILL].'
-                      <br />'.$lang_char['guild'].': '.$guild_name.' | '.$lang_char['rank'].': '.$guild_rank.'
+                      <br />'.$lang_char['honor_points'].': '.$char_data[CHAR_DATA_OFFSET_HONOR_POINTS+DATA_3].' / '.$char_data[CHAR_DATA_OFFSET_ARENA_POINTS+DATA_3].' - '.$lang_char['honor_kills'].': '.$char_data[CHAR_DATA_OFFSET_HONOR_KILL+DATA_3].'
+                      <br />'.$lang_char['guild'].': '.$guild_name.' | '.$lang_char['rank'].': '.htmlentities($guild_rank).'
                       <br />'.(($char['online']) ? '<img src="img/up.gif" onmousemove="toolTip(\'Online\', \'item_tooltip\')" onmouseout="toolTip()" alt="online" />' : '<img src="img/down.gif" onmousemove="toolTip(\'Offline\', \'item_tooltip\')" onmouseout="toolTip()" alt="offline" />');
       if ($showcountryflag)
       {
@@ -295,10 +240,10 @@ function char_main(&$sqlr, &$sqlc)
                   </tr>
                   <tr>
                     <td width="6%">';
-      if (($equiped_items[1][1]))
+      if ($equip[0])
         $output .= '
-                      <a style="padding:2px;" href="'.$item_datasite.$EQU_HEAD.'" target="_blank">
-                        <img src="'.$equiped_items[1][1].'" class="'.$equiped_items[1][2].'" alt="Head" />
+                      <a style="padding:2px;" href="'.$item_datasite.$equip[0].'" target="_blank" rel="ench='.$equip[1].'&amp;pcs='.$set_items.'">
+                        <img src="img/INV/INV_empty_head.png"  name="itm'.$equip[0].'" alt="Head" />
                       </a>';
       else
         $output .= '
@@ -307,12 +252,12 @@ function char_main(&$sqlr, &$sqlc)
                     </td>
                     <td class="half_line" colspan="2" align="center" width="50%">
                       <div class="gradient_p">'.$lang_item['health'].':</div>
-                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_MAX_HEALTH].'</div>';
+                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_MAX_HEALTH+DATA_0].'</div>';
       if ($char['class'] == 11) //druid
         $output .= '
                       </br>
                       <div class="gradient_p">'.$lang_item['energy'].':</div>
-                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_ENERGY].'/'.$char_data[CHAR_DATA_OFFSET_MAX_ENERGY].'</div>';
+                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_ENERGY+DATA_0].'/'.round($char_data[CHAR_DATA_OFFSET_MAX_ENERGY+DATA_0]).'</div>';
       $output .= '
                     </td>
                     <td class="half_line" colspan="2" align="center" width="50%">';
@@ -326,20 +271,20 @@ function char_main(&$sqlr, &$sqlc)
       {
         $output .= '
                       <div class="gradient_p">'.$lang_item['energy'].':</div>
-                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_ENERGY].'/'.$char_data[CHAR_DATA_OFFSET_MAX_ENERGY].'</div>';
+                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_ENERGY+DATA_0].'/'.round($char_data[CHAR_DATA_OFFSET_MAX_ENERGY+DATA_0]).'</div>';
       }
       elseif ($char['class'] == 6) // death knight
       {
         // Don't know if FOCUS is the right one need to verify with Death Knight player.
         $output .= '
                       <div class="gradient_p">'.$lang_item['runic'].':</div>
-                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_FOCUS].'/'.$char_data[CHAR_DATA_OFFSET_MAX_FOCUS].'</div>';
+                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_FOCUS+DATA_0].'/'.$char_data[CHAR_DATA_OFFSET_MAX_FOCUS+DATA_0].'</div>';
       }
       elseif ($char['class'] == 11) // druid
       {
         $output .= '
                       <div class="gradient_p">'.$lang_item['mana'].':</div>
-                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_MAX_MANA].'</div>
+                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_MAX_MANA+DATA_0].'</div>
                       </br>
                       <div class="gradient_p">'.$lang_item['rage'].':</div>
                       <div class="gradient_pp">'.$rage.'/'.$maxrage.'</div>';
@@ -353,15 +298,15 @@ function char_main(&$sqlr, &$sqlc)
       {
         $output .= '
                       <div class="gradient_p">'.$lang_item['mana'].':</div>
-                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_MAX_MANA].'</div>';
+                      <div class="gradient_pp">'.$char_data[CHAR_DATA_OFFSET_MAX_MANA+DATA_0].'</div>';
       }
       $output .= '
                     </td>
                     <td width="6%">';
-      if (($equiped_items[10][1]))
+      if ($equip[CHAR_DATA_OFFSET_EQU_GLOVES - CHAR_DATA_OFFSET_EQU_HEAD])
         $output .= '
-                      <a style="padding:2px;" href="'.$item_datasite.$EQU_GLOVES.'" target="_blank">
-                        <img src="'.$equiped_items[10][1].'" class="'.$equiped_items[10][2].'" alt="Gloves" />
+                      <a style="padding:2px;" href="'.$item_datasite.$equip[CHAR_DATA_OFFSET_EQU_GLOVES - CHAR_DATA_OFFSET_EQU_HEAD].'" target="_blank" rel="ench='.$equip[CHAR_DATA_OFFSET_EQU_GLOVES - CHAR_DATA_OFFSET_EQU_HEAD+1].'&amp;pcs='.$set_items.'">
+                        <img src="img/INV/INV_empty_gloves.png" name="itm'.$equip[CHAR_DATA_OFFSET_EQU_GLOVES - CHAR_DATA_OFFSET_EQU_HEAD].'" alt="Gloves" />
                       </a>';
       else
         $output .= '
@@ -371,10 +316,10 @@ function char_main(&$sqlr, &$sqlc)
                   </tr>
                   <tr>
                     <td width="1%">';
-      if (($equiped_items[2][1]))
+      if ($equip[CHAR_DATA_OFFSET_EQU_NECK - CHAR_DATA_OFFSET_EQU_HEAD])
         $output .= '
-                      <a style="padding:2px;" href="'.$item_datasite.$EQU_NECK.'" target="_blank">
-                        <img src="'.$equiped_items[2][1].'" class="'.$equiped_items[2][2].'" alt="Neck" />
+                      <a style="padding:2px;" href="'.$item_datasite.$equip[CHAR_DATA_OFFSET_EQU_NECK - CHAR_DATA_OFFSET_EQU_HEAD].'" target="_blank" rel="ench='.$equip[CHAR_DATA_OFFSET_EQU_NECK - CHAR_DATA_OFFSET_EQU_HEAD+1].'">
+                        <img src="img/INV/INV_empty_neck.png" name="itm'.$equip[CHAR_DATA_OFFSET_EQU_NECK - CHAR_DATA_OFFSET_EQU_HEAD].'" alt="Neck" />
                       </a>';
       else
         $output .= '
@@ -391,12 +336,12 @@ function char_main(&$sqlr, &$sqlc)
                         '.$lang_item['armor'].':
                       </div>
                       <div class="gradient_pp">
-                        '.$char_data[CHAR_DATA_OFFSET_STR].'<br />
-                        '.$char_data[CHAR_DATA_OFFSET_AGI].'<br />
-                        '.$char_data[CHAR_DATA_OFFSET_STA].'<br />
-                        '.$char_data[CHAR_DATA_OFFSET_INT].'<br />
-                        '.$char_data[CHAR_DATA_OFFSET_SPI].'<br />
-                        '.$char_data[CHAR_DATA_OFFSET_ARMOR].'
+                        '.$char_data[CHAR_DATA_OFFSET_STR+DATA_1].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_AGI+DATA_1].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_STA+DATA_1].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_INT+DATA_1].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_SPI+DATA_1].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_ARMOR+DATA_1].'
                       </div>
                     </td>
                     <td class="half_line" colspan="2" rowspan="3" align="center" width="50%">
@@ -409,19 +354,19 @@ function char_main(&$sqlr, &$sqlc)
                         '.$lang_item['res_shadow'].':
                       </div>
                       <div class="gradient_pp">
-                        '.$char_data[CHAR_DATA_OFFSET_RES_HOLY].'<br />
-                        '.$char_data[CHAR_DATA_OFFSET_RES_ARCANE].'<br />
-                        '.$char_data[CHAR_DATA_OFFSET_RES_FIRE].'<br />
-                        '.$char_data[CHAR_DATA_OFFSET_RES_NATURE].'<br />
-                        '.$char_data[CHAR_DATA_OFFSET_RES_FROST].'<br />
-                        '.$char_data[CHAR_DATA_OFFSET_RES_SHADOW].'
+                        '.$char_data[CHAR_DATA_OFFSET_RES_HOLY+DATA_1].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_RES_ARCANE+DATA_1].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_RES_FIRE+DATA_1].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_RES_NATURE+DATA_1].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_RES_FROST+DATA_1].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_RES_SHADOW+DATA_1].'
                       </div>
                     </td>
                     <td width="1%">';
-      if (($equiped_items[6][1]))
+      if ($equip[CHAR_DATA_OFFSET_EQU_BELT - CHAR_DATA_OFFSET_EQU_HEAD])
         $output .= '
-                      <a style="padding:2px;" href="'.$item_datasite.$EQU_BELT.'" target="_blank">
-                        <img src="'.$equiped_items[6][1].'" class="'.$equiped_items[6][2].'" alt="Belt" />
+                      <a style="padding:2px;" href="'.$item_datasite.$equip[CHAR_DATA_OFFSET_EQU_BELT - CHAR_DATA_OFFSET_EQU_HEAD].'" rel="ench='.$equip[CHAR_DATA_OFFSET_EQU_BELT - CHAR_DATA_OFFSET_EQU_HEAD+1].'&amp;" target="_blank">
+                        <img src="img/INV/INV_empty_waist.png" name="itm'.$equip[CHAR_DATA_OFFSET_EQU_BELT - CHAR_DATA_OFFSET_EQU_HEAD].'" alt="Belt" />
                       </a>';
       else
         $output .= '
@@ -431,10 +376,10 @@ function char_main(&$sqlr, &$sqlc)
                   </tr>
                   <tr>
                     <td width="1%">';
-      if (($equiped_items[3][1]))
+      if ($equip[CHAR_DATA_OFFSET_EQU_SHOULDER - CHAR_DATA_OFFSET_EQU_HEAD])
         $output .= '
-                      <a style="padding:2px;" href="'.$item_datasite.$EQU_SHOULDER.'" target="_blank">
-                        <img src="'.$equiped_items[3][1].'" class="'.$equiped_items[3][2].'" alt="Shoulder" />
+                      <a style="padding:2px;" href="'.$item_datasite.$equip[CHAR_DATA_OFFSET_EQU_SHOULDER - CHAR_DATA_OFFSET_EQU_HEAD].'" rel="ench='.$equip[CHAR_DATA_OFFSET_EQU_SHOULDER - CHAR_DATA_OFFSET_EQU_HEAD+1].'&amp;pcs='.$set_items.'" target="_blank">
+                        <img src="img/INV/INV_empty_shoulder.png" name="itm'.$equip[CHAR_DATA_OFFSET_EQU_SHOULDER - CHAR_DATA_OFFSET_EQU_HEAD].'" alt="Shoulder" />
                       </a>';
       else
         $output .= '
@@ -442,10 +387,10 @@ function char_main(&$sqlr, &$sqlc)
       $output .= '
                     </td>
                     <td width="1%">';
-      if (($equiped_items[7][1]))
+      if ($equip[CHAR_DATA_OFFSET_EQU_LEGS - CHAR_DATA_OFFSET_EQU_HEAD])
         $output .= '
-                      <a style="padding:2px;" href="'.$item_datasite.$EQU_LEGS.'" target="_blank">
-                        <img src="'.$equiped_items[7][1].'" class="'.$equiped_items[7][2].'" alt="Legs" />
+                      <a style="padding:2px;" href="'.$item_datasite.$equip[CHAR_DATA_OFFSET_EQU_LEGS - CHAR_DATA_OFFSET_EQU_HEAD].'" rel="ench='.$equip[CHAR_DATA_OFFSET_EQU_LEGS - CHAR_DATA_OFFSET_EQU_HEAD+1].'&amp;pcs='.$set_items.'" target="_blank">
+                        <img src="img/INV/INV_empty_legs.png" name="itm'.$equip[CHAR_DATA_OFFSET_EQU_LEGS - CHAR_DATA_OFFSET_EQU_HEAD].'" alt="Legs" />
                       </a>';
       else
         $output .= '
@@ -455,10 +400,10 @@ function char_main(&$sqlr, &$sqlc)
                   </tr>
                   <tr>
                     <td width="1%">';
-      if (($equiped_items[15][1]))
+      if ($equip[CHAR_DATA_OFFSET_EQU_BACK - CHAR_DATA_OFFSET_EQU_HEAD])
         $output .= '
-                      <a style="padding:2px;" href="'.$item_datasite.$EQU_BACK.'" target="_blank">
-                        <img src="'.$equiped_items[15][1].'" class="'.$equiped_items[15][2].'" alt="Back" />
+                      <a style="padding:2px;" href="'.$item_datasite.$equip[CHAR_DATA_OFFSET_EQU_BACK - CHAR_DATA_OFFSET_EQU_HEAD].'" rel="ench='.$equip[CHAR_DATA_OFFSET_EQU_BACK - CHAR_DATA_OFFSET_EQU_HEAD+1].'&amp;" target="_blank">
+                        <img src="img/INV/INV_empty_chest_back.png" name="itm'.$equip[CHAR_DATA_OFFSET_EQU_BACK - CHAR_DATA_OFFSET_EQU_HEAD].'" alt="Back" />
                       </a>';
       else
         $output .= '
@@ -466,10 +411,10 @@ function char_main(&$sqlr, &$sqlc)
       $output .= '
                     </td>
                     <td width="1%">';
-      if (($equiped_items[8][1]))
+      if ($equip[CHAR_DATA_OFFSET_EQU_FEET - CHAR_DATA_OFFSET_EQU_HEAD] > 0)
         $output .= '
-                      <a style="padding:2px;" href="'.$item_datasite.$EQU_FEET.'" target="_blank">
-                        <img src="'.$equiped_items[8][1].'" class="'.$equiped_items[8][2].'" alt="Feet" />
+                      <a style="padding:2px;" href="'.$item_datasite.$equip[CHAR_DATA_OFFSET_EQU_FEET - CHAR_DATA_OFFSET_EQU_HEAD].'" rel="ench='.$equip[CHAR_DATA_OFFSET_EQU_FEET - CHAR_DATA_OFFSET_EQU_HEAD+1].'&amp;" target="_blank">
+                        <img src="img/INV/INV_empty_feet.png" name="itm'.$equip[CHAR_DATA_OFFSET_EQU_FEET - CHAR_DATA_OFFSET_EQU_HEAD].'" alt="Feet" />
                       </a>';
       else
         $output .= '
@@ -479,10 +424,10 @@ function char_main(&$sqlr, &$sqlc)
                   </tr>
                   <tr>
                     <td width="1%">';
-      if (($equiped_items[5][1]))
+      if ($equip[CHAR_DATA_OFFSET_EQU_CHEST - CHAR_DATA_OFFSET_EQU_HEAD] > 0)
         $output .= '
-                      <a style="padding:2px;" href="'.$item_datasite.$EQU_CHEST.'" target="_blank">
-                        <img src="'.$equiped_items[5][1].'" class="'.$equiped_items[5][2].'" alt="Chest" />
+                      <a style="padding:2px;" href="'.$item_datasite.$equip[CHAR_DATA_OFFSET_EQU_CHEST - CHAR_DATA_OFFSET_EQU_HEAD].'" rel="ench='.$equip[CHAR_DATA_OFFSET_EQU_CHEST - CHAR_DATA_OFFSET_EQU_HEAD+1].'&amp;pcs='.$set_items.'" target="_blank">
+                        <img <img src="img/INV/INV_empty_chest_back.png" name="itm'.$equip[CHAR_DATA_OFFSET_EQU_CHEST - CHAR_DATA_OFFSET_EQU_HEAD].'" alt="Chest" />
                       </a>';
       else
         $output .= '
@@ -499,8 +444,8 @@ function char_main(&$sqlr, &$sqlc)
                       </div>
                       <div class="gradient_pp">
                         '.$mindamage.'-'.$maxdamage.'<br />
-                        '.($char_data[CHAR_DATA_OFFSET_AP]+$char_data[CHAR_DATA_OFFSET_AP_MOD]).'<br />
-                        '.$char_data[CHAR_DATA_OFFSET_MELEE_HIT].'<br />
+                        '.($char_data[CHAR_DATA_OFFSET_AP+DATA_1]+$char_data[CHAR_DATA_OFFSET_AP_MOD+DATA_1]).'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_MELEE_HIT+DATA_3].'<br />
                         '.$crit.'%<br />
                         '.$expertise.'<br />
                       </div>
@@ -515,17 +460,17 @@ function char_main(&$sqlr, &$sqlc)
                       </div>
                       <div class="gradient_pp">
                         '.$spell_damage.'<br />
-                        '.$char_data[CHAR_DATA_OFFSET_SPELL_HEAL].'<br />
-                        '.$char_data[CHAR_DATA_OFFSET_SPELL_HIT].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_SPELL_HEAL+DATA_3].'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_SPELL_HIT+DATA_3].'<br />
                         '.$spell_crit.'%<br />
-                        '.$char_data[CHAR_DATA_OFFSET_SPELL_HASTE_RATING].'
+                        '.$char_data[CHAR_DATA_OFFSET_SPELL_HASTE_RATING+DATA_3].'
                       </div>
                     </td>
                     <td width="1%">';
-      if (($equiped_items[11][1]))
+      if ($equip[CHAR_DATA_OFFSET_EQU_FINGER1 - CHAR_DATA_OFFSET_EQU_HEAD] > 0)
         $output .= '
-                      <a style="padding:2px;" href="'.$item_datasite.$EQU_FINGER1.'" target="_blank">
-                        <img src="'.$equiped_items[11][1].'" class="'.$equiped_items[11][2].'" alt="Finger1" />
+                      <a style="padding:2px;" href="'.$item_datasite.$equip[CHAR_DATA_OFFSET_EQU_FINGER1 - CHAR_DATA_OFFSET_EQU_HEAD].'" rel="ench='.$equip[CHAR_DATA_OFFSET_EQU_FINGER1 - CHAR_DATA_OFFSET_EQU_HEAD+1].'&amp;" target="_blank">
+                        <img src="img/INV/INV_empty_finger.png" name="itm'.$equip[CHAR_DATA_OFFSET_EQU_FINGER1 - CHAR_DATA_OFFSET_EQU_HEAD].'" alt="Finger1" />
                       </a>';
       else
         $output .= '
@@ -535,10 +480,10 @@ function char_main(&$sqlr, &$sqlc)
                   </tr>
                   <tr>
                     <td width="1%">';
-      if (($equiped_items[4][1]))
+      if ($equip[CHAR_DATA_OFFSET_EQU_SHIRT - CHAR_DATA_OFFSET_EQU_HEAD] > 0)
         $output .= '
-                      <a style="padding:2px;" href="'.$item_datasite.$EQU_SHIRT.'" target="_blank">
-                        <img src="'.$equiped_items[4][1].'" class="'.$equiped_items[4][2].'" alt="Shirt" />
+                      <a style="padding:2px;" href="'.$item_datasite.$equip[CHAR_DATA_OFFSET_EQU_SHIRT - CHAR_DATA_OFFSET_EQU_HEAD].'" rel="ench='.$equip[CHAR_DATA_OFFSET_EQU_SHIRT - CHAR_DATA_OFFSET_EQU_HEAD+1].'&amp;" target="_blank">
+                        <img src="img/INV/INV_empty_shirt.png" name="itm'.$equip[CHAR_DATA_OFFSET_EQU_SHIRT - CHAR_DATA_OFFSET_EQU_HEAD].'" alt="Shirt" />
                       </a>';
       else
         $output .= '
@@ -546,10 +491,10 @@ function char_main(&$sqlr, &$sqlc)
       $output .= '
                     </td>
                     <td width="1%">';
-      if (($equiped_items[12][1]))
+      if ($equip[CHAR_DATA_OFFSET_EQU_FINGER2 - CHAR_DATA_OFFSET_EQU_HEAD] > 0)
         $output .= '
-                      <a style="padding:2px;" href="'.$item_datasite.$EQU_FINGER2.'" target="_blank">
-                        <img src="'.$equiped_items[12][1].'" class="'.$equiped_items[12][2].'" alt="Finger2" />
+                      <a style="padding:2px;" href="'.$item_datasite.$equip[CHAR_DATA_OFFSET_EQU_FINGER2 - CHAR_DATA_OFFSET_EQU_HEAD].'" rel="ench='.$equip[CHAR_DATA_OFFSET_EQU_FINGER2 - CHAR_DATA_OFFSET_EQU_HEAD+1].'&amp;" target="_blank">
+                        <img ssrc="img/INV/INV_empty_finger.png" name="itm'.$equip[CHAR_DATA_OFFSET_EQU_FINGER2 - CHAR_DATA_OFFSET_EQU_HEAD].'" alt="Finger2" />
                       </a>';
       else $output .= '
                       <img src="img/INV/INV_empty_finger.png" class="icon_border_0" alt="empty" />';
@@ -558,10 +503,10 @@ function char_main(&$sqlr, &$sqlc)
                   </tr>
                   <tr>
                     <td width="1%">';
-      if (($equiped_items[19][1]))
+      if ($equip[CHAR_DATA_OFFSET_EQU_TABARD - CHAR_DATA_OFFSET_EQU_HEAD] > 0)
         $output .= '
-                      <a style="padding:2px;" href="'.$item_datasite.$EQU_TABARD.'" target="_blank">
-                        <img src="'.$equiped_items[19][1].'" class="'.$equiped_items[19][2].'" alt="Tabard" />
+                      <a style="padding:2px;" href="'.$item_datasite.$equip[CHAR_DATA_OFFSET_EQU_TABARD - CHAR_DATA_OFFSET_EQU_HEAD].'" rel="ench='.$equip[CHAR_DATA_OFFSET_EQU_TABARD - CHAR_DATA_OFFSET_EQU_HEAD+1].'&amp;" target="_blank">
+                        <img src="img/INV/INV_empty_tabard.png" name="itm'.$equip[CHAR_DATA_OFFSET_EQU_TABARD - CHAR_DATA_OFFSET_EQU_HEAD].'" alt="Tabard" />
                       </a>';
       else $output .= '
                       <img src="img/INV/INV_empty_tabard.png" class="icon_border_0" alt="empty" />';
@@ -571,12 +516,14 @@ function char_main(&$sqlr, &$sqlc)
                       <div class="gradient_p">
                         '.$lang_char['dodge'].':<br />
                         '.$lang_char['parry'].':<br />
-                        '.$lang_char['block'].':
+                        '.$lang_char['block'].':<br />
+                        '.$lang_char['resilience'].':
                       </div>
                       <div class="gradient_pp">
                         '.$dodge.'%<br />
                         '.$parry.'%<br />
-                        '.$block.'%
+                        '.$block.'%<br />
+                        '.$char_data[CHAR_DATA_OFFSET_RESILIENCE+DATA_3].'
                       </div>
                     </td>
                     <td class="half_line" colspan="2" rowspan="2" align="center" width="50%">
@@ -588,16 +535,16 @@ function char_main(&$sqlr, &$sqlc)
                       </div>
                       <div class="gradient_pp">
                         '.$minrangeddamage.'-'.$maxrangeddamage.'<br />
-                        '.($char_data[CHAR_DATA_OFFSET_RANGED_AP]+$char_data[CHAR_DATA_OFFSET_RANGED_AP_MOD]).'<br />
-                        '.$char_data[CHAR_DATA_OFFSET_RANGE_HIT].'<br />
+                        '.($char_data[CHAR_DATA_OFFSET_RANGED_AP+DATA_1]+$char_data[CHAR_DATA_OFFSET_RANGED_AP_MOD+DATA_1]).'<br />
+                        '.$char_data[CHAR_DATA_OFFSET_RANGE_HIT+DATA_3].'<br />
                         '.$ranged_crit.'%<br />
                       </div>
                     </td>
                     <td width="1%">';
-      if (($equiped_items[13][1]))
+      if ($equip[CHAR_DATA_OFFSET_EQU_TRINKET1 - CHAR_DATA_OFFSET_EQU_HEAD] > 0)
         $output .= '
-                      <a style="padding:2px;" href="'.$item_datasite.$EQU_TRINKET1.'" target="_blank">
-                        <img src="'.$equiped_items[13][1].'" class="'.$equiped_items[13][2].'" alt="Trinket1" />
+                      <a style="padding:2px;" href="'.$item_datasite.$equip[CHAR_DATA_OFFSET_EQU_TRINKET1 - CHAR_DATA_OFFSET_EQU_HEAD].'" rel="ench='.$equip[CHAR_DATA_OFFSET_EQU_TRINKET1 - CHAR_DATA_OFFSET_EQU_HEAD+1].'&amp;" target="_blank">
+                        <img src="img/INV/INV_empty_trinket.png" name="itm'.$equip[CHAR_DATA_OFFSET_EQU_TRINKET1 - CHAR_DATA_OFFSET_EQU_HEAD].'" alt="Trinket1" />
                       </a>';
       else
         $output .= '
@@ -607,10 +554,10 @@ function char_main(&$sqlr, &$sqlc)
                   </tr>
                   <tr>
                     <td width="1%">';
-      if (($equiped_items[9][1]))
+      if ($equip[CHAR_DATA_OFFSET_EQU_WRIST - CHAR_DATA_OFFSET_EQU_HEAD] > 0)
         $output .= '
-                      <a style="padding:2px;" href="'.$item_datasite.$EQU_WRIST.'" target="_blank">
-                        <img src="'.$equiped_items[9][1].'" class="'.$equiped_items[9][2].'" alt="Wrist" />
+                      <a style="padding:2px;" href="'.$item_datasite.$equip[CHAR_DATA_OFFSET_EQU_WRIST - CHAR_DATA_OFFSET_EQU_HEAD].'" rel="ench='.$equip[CHAR_DATA_OFFSET_EQU_WRIST - CHAR_DATA_OFFSET_EQU_HEAD+1].'&amp;" target="_blank">
+                        <img src="img/INV/INV_empty_wrist.png" name="itm'.$equip[CHAR_DATA_OFFSET_EQU_WRIST - CHAR_DATA_OFFSET_EQU_HEAD].'" alt="Wrist" />
                       </a>';
       else
         $output .= '
@@ -618,10 +565,10 @@ function char_main(&$sqlr, &$sqlc)
       $output .= '
                     </td>
                     <td width="1%">';
-      if (($equiped_items[14][1]))
+      if ($equip[CHAR_DATA_OFFSET_EQU_TRINKET2 - CHAR_DATA_OFFSET_EQU_HEAD] > 0)
         $output .= '
-                      <a style="padding:2px;" href="'.$item_datasite.$EQU_TRINKET2.'" target="_blank">
-                        <img src="'.$equiped_items[14][1].'" class="'.$equiped_items[14][2].'" alt="Trinket2" />
+                      <a style="padding:2px;" href="'.$item_datasite.$equip[CHAR_DATA_OFFSET_EQU_TRINKET2 - CHAR_DATA_OFFSET_EQU_HEAD].'" rel="ench='.$equip[CHAR_DATA_OFFSET_EQU_TRINKET2 - CHAR_DATA_OFFSET_EQU_HEAD+1].'&amp;" target="_blank">
+                        <img src="img/INV/INV_empty_trinket.png" name="itm'.$equip[CHAR_DATA_OFFSET_EQU_TRINKET2 - CHAR_DATA_OFFSET_EQU_HEAD].'" alt="Trinket2" />
                       </a>';
       else
         $output .= '
@@ -632,10 +579,10 @@ function char_main(&$sqlr, &$sqlc)
                   <tr>
                     <td></td>
                     <td width="15%">';
-      if (($equiped_items[16][1]))
+      if ($equip[CHAR_DATA_OFFSET_EQU_MAIN_HAND - CHAR_DATA_OFFSET_EQU_HEAD] > 0)
         $output .= '
-                      <a style="padding:2px;" href="'.$item_datasite.$EQU_MAIN_HAND.'" target="_blank">
-                        <img src="'.$equiped_items[16][1].'" class="'.$equiped_items[16][2].'" alt="MainHand" />
+                      <a style="padding:2px;" href="'.$item_datasite.$equip[CHAR_DATA_OFFSET_EQU_MAIN_HAND - CHAR_DATA_OFFSET_EQU_HEAD].'" rel="ench='.$equip[CHAR_DATA_OFFSET_EQU_MAIN_HAND - CHAR_DATA_OFFSET_EQU_HEAD+1].'&amp;" target="_blank">
+                        <img src="img/INV/INV_empty_main_hand.png" name="itm'.$equip[CHAR_DATA_OFFSET_EQU_MAIN_HAND - CHAR_DATA_OFFSET_EQU_HEAD].'" alt="MainHand" />
                       </a>';
       else
         $output .= '
@@ -643,10 +590,10 @@ function char_main(&$sqlr, &$sqlc)
       $output .= '
                     </td>
                     <td width="15%">';
-      if (($equiped_items[17][1]))
+      if ($equip[CHAR_DATA_OFFSET_EQU_OFF_HAND - CHAR_DATA_OFFSET_EQU_HEAD] > 0)
         $output .= '
-                      <a style="padding:2px;" href="'.$item_datasite.$EQU_OFF_HAND.'" target="_blank">
-                        <img src="'.$equiped_items[17][1].'" class="'.$equiped_items[17][2].'" alt="OffHand" />
+                      <a style="padding:2px;" href="'.$item_datasite.$equip[CHAR_DATA_OFFSET_EQU_OFF_HAND - CHAR_DATA_OFFSET_EQU_HEAD].'" rel="ench='.$equip[CHAR_DATA_OFFSET_EQU_OFF_HAND - CHAR_DATA_OFFSET_EQU_HEAD+1].'&amp;" target="_blank">
+                        <img src="img/INV/INV_empty_off_hand.png" name="itm'.$equip[CHAR_DATA_OFFSET_EQU_OFF_HAND - CHAR_DATA_OFFSET_EQU_HEAD].'" alt="OffHand" />
                       </a>';
       else
         $output .= '
@@ -654,10 +601,10 @@ function char_main(&$sqlr, &$sqlc)
       $output .= '
                     </td>
                     <td width="15%">';
-      if (($equiped_items[18][1]))
+      if ($equip[CHAR_DATA_OFFSET_EQU_RANGED - CHAR_DATA_OFFSET_EQU_HEAD] > 0)
         $output .= '
-                      <a style="padding:2px;" href="'.$item_datasite.$EQU_RANGED.'" target="_blank">
-                        <img src="'.$equiped_items[18][1].'" class="'.$equiped_items[18][2].'" alt="Ranged" />
+                      <a style="padding:2px;" href="'.$item_datasite.$equip[CHAR_DATA_OFFSET_EQU_RANGED - CHAR_DATA_OFFSET_EQU_HEAD].'" rel="ench='.$equip[CHAR_DATA_OFFSET_EQU_RANGED- CHAR_DATA_OFFSET_EQU_HEAD+1].'&amp;" target="_blank">
+                        <img src="img/INV/INV_empty_ranged.png" name="itm'.$equip[CHAR_DATA_OFFSET_EQU_RANGED - CHAR_DATA_OFFSET_EQU_HEAD].'" alt="Ranged" />
                       </a>';
       else
         $output .= '
@@ -701,7 +648,7 @@ function char_main(&$sqlr, &$sqlc)
 
       // only higher level GM with delete access can edit character
       //  character edit allows removal of character items, so delete permission is needed
-      if ( ($user_lvl > $owner_gmlvl) && ($user_lvl >= $action_permission['edit']) )
+      if ( ($user_lvl > $owner_gmlvl) && ($user_lvl >= $action_permission['delete']) )
       {
                   makebutton($lang_char['edit_button'], 'char_edit.php?id='.$id.'&amp;realm='.$realmid.'', 130);
         $output .= '

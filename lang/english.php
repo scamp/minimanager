@@ -368,6 +368,7 @@ function lang_char()
   $lang_char = array
   (
     'character' => 'Character',
+    'arena_teams' => 'Arena Teams',
     'online' => 'Online',
     'offline' => 'Offline',
     'username' => 'Username',

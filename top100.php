@@ -22,7 +22,7 @@ function top100($realmid, &$sqlr, &$sqlc)
   $start = (isset($_GET['start'])) ? $sqlc->quote_smart($_GET['start']) : 0;
   if (is_numeric($start)); else $start=0;
 
-  if(isset($_GET['order_by']) && in_array($_GET['order_by'], array('level', 'totaltime', 'online', 'money', 'health', 'mana', 'str', 'agi', 'sta', 'intel', 'spi', 'armor', 'block', 'dodge', 'parry', 'ap', 'ranged_ap', 'min_dmg', 'max_dmg', 'min_ranged_dmg', 'max_ranged_dmg', 'expertise', 'off_expertise', 'holy', 'fire', 'nature', 'frost', 'shadow','arcane', 'melee_crit', 'range_crit', 'melee_hit', 'range_hit', 'spell_hit', 'honor', 'kills', 'arena', 'spell_dmg_0', 'spell_dmg_1', 'spell_dmg_2', 'spell_dmg_3', 'spell_dmg_4', 'spell_dmg_5', 'spell_dmg_min', 'spell_crit_0', 'spell_crit_1', 'spell_crit_2', 'spell_crit_3', 'spell_crit_4', 'spell_crit_5', 'spell_crit'))) $order_by=$_GET['order_by'];
+  if(isset($_GET['order_by']) && in_array($_GET['order_by'], array('level', 'totaltime', 'online', 'money', 'health', 'mana', 'str', 'agi', 'sta', 'intel', 'spi', 'armor', 'block', 'dodge', 'parry', 'ap', 'ranged_ap', 'min_dmg', 'max_dmg', 'min_ranged_dmg', 'max_ranged_dmg', 'expertise', 'off_expertise', 'holy', 'fire', 'nature', 'frost', 'shadow','arcane', 'melee_crit', 'range_crit', 'melee_hit', 'range_hit', 'spell_hit', 'honor', 'kills', 'arena'))) $order_by=$_GET['order_by'];
   else $order_by = 'level';
 
   $dir = (isset($_GET['dir'])) ? intval($_GET['dir'])%2 : 1;
@@ -76,21 +76,7 @@ function top100($realmid, &$sqlr, &$sqlc)
     CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_SPELL_HIT+1).'),         " ", -1) AS UNSIGNED) AS spell_hit,
     CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_HONOR_POINTS+1).'),      " ", -1) AS UNSIGNED) AS honor,
     CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_HONOR_KILL+1).'),        " ", -1) AS UNSIGNED) AS kills,
-    CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_ARENA_POINTS+1).'),      " ", -1) AS UNSIGNED) AS arena,
-	@spell_dmg_1:=CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_SPELL_DAMAGE+2).'),      " ", -1)  AS UNSIGNED) AS spell_dmg_0,
-	@spell_dmg_2:=CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_SPELL_DAMAGE+3).'),      " ", -1)  AS UNSIGNED) AS spell_dmg_1,
-	@spell_dmg_3:=CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_SPELL_DAMAGE+4).'),      " ", -1)  AS UNSIGNED) AS spell_dmg_2,
-	@spell_dmg_4:=CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_SPELL_DAMAGE+5).'),      " ", -1)  AS UNSIGNED) AS spell_dmg_3,
-	@spell_dmg_5:=CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_SPELL_DAMAGE+6).'),      " ", -1)  AS UNSIGNED) AS spell_dmg_4,
-	@spell_dmg_6:=CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_SPELL_DAMAGE+7).'),      " ", -1)  AS UNSIGNED) AS spell_dmg_5,
-	CAST(IF(IF(IF(IF(IF(@spell_dmg_2<@spell_dmg_1,@cmin:=@spell_dmg_2,@cmin:=@spell_dmg_1)>@spell_dmg_3,@cmin:=@spell_dmg_3,@cmin)<@spell_dmg_4,@cmin:=@spell_dmg_4,@cmin)>@spell_dmg_5,@cmin:=@spell_dmg_5,@cmin)>@spell_dmg_6,@cmin:=@spell_dmg_6,@cmin) as UNSIGNED) AS spell_dmg_min,
-	@spell_crit_1:=CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_SPELL_CRIT+2).'),      " ", -1)  AS UNSIGNED) AS spell_crit_0,
-	@spell_crit_2:=CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_SPELL_CRIT+3).'),      " ", -1)  AS UNSIGNED) AS spell_crit_1,
-	@spell_crit_3:=CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_SPELL_CRIT+4).'),      " ", -1)  AS UNSIGNED) AS spell_crit_2,
-	@spell_crit_4:=CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_SPELL_CRIT+5).'),      " ", -1)  AS UNSIGNED) AS spell_crit_3,
-	@spell_crit_5:=CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_SPELL_CRIT+6).'),      " ", -1)  AS UNSIGNED) AS spell_crit_4,
-	@spell_crit_6:=CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_SPELL_CRIT+7).'),      " ", -1)  AS UNSIGNED) AS spell_crit_5,
-CAST(if(if(if(if(if(@spell_crit_2<@spell_crit_1,@cmin:=@spell_crit_2,@cmin:=@spell_crit_1)>@spell_crit_3,@cmin:=@spell_crit_3,@cmin)<@spell_crit_4,@cmin:=@spell_crit_4,@cmin)>@spell_crit_5,@cmin:=@spell_crit_5,@cmin)>@spell_crit_6,@cmin:=@spell_crit_6,@cmin) as UNSIGNED) AS spell_crit
+    CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", '.(CHAR_DATA_OFFSET_ARENA_POINTS+1).'),      " ", -1) AS UNSIGNED) AS arena
     FROM characters '.$where.' ORDER BY '.$order_by.' '.$order_dir.' LIMIT '.$start.', '.$itemperpage.'');
 
 
@@ -127,11 +113,6 @@ CAST(if(if(if(if(if(@spell_crit_2<@spell_crit_1,@cmin:=@spell_crit_2,@cmin:=@spe
                 <li'.(($type === 'crit_hit') ? ' id="selected"' : '' ).'>
                   <a href="top100.php?start='.$start.'&amp;type=crit_hit&amp;order_by=ranged_ap">
                     '.$lang_top['ranged'].'
-                  </a>
-                </li>
-                <li'.(($type === 'spd') ? ' id="selected"' : '' ).'>
-                  <a href="top100.php?start='.$start.'&amp;type=spd&amp;order_by=spell_dmg_min">
-                    '.$lang_top['spell'].'
                   </a>
                 </li>
                 <li'.(($type === 'pvp') ? ' id="selected"' : '' ).'>
@@ -250,18 +231,7 @@ CAST(if(if(if(if(if(@spell_crit_2<@spell_crit_1,@cmin:=@spell_crit_2,@cmin:=@spe
                 <th width="14%"><a href="top100.php?type='.$type.'&amp;order_by=kills&amp;start='.$start.'&amp;dir='.direct('kills').'"'.($order_by==='kills' ? ' class="'.$order_dir.'"' : '').'>'.$lang_top['kills'].'</a></th>
                 <th width="14%"><a href="top100.php?type='.$type.'&amp;order_by=arena&amp;start='.$start.'&amp;dir='.direct('arena').'"'.($order_by==='arena' ? ' class="'.$order_dir.'"' : '').'>'.$lang_top['arena_points'].'</a></th>';
   }
-  elseif ($type === 'spd')
-  {
-    $output .= '
-                <th width="18%"><a href="top100.php?type='.$type.'&amp;order_by=spell_dmg_min&amp;start='.$start.'&amp;dir='.direct('spell_dmg_min').'"'.($order_by==='spell_dmg_min' ? ' class="'.$order_dir.'"' : '').'>'.$lang_top['spd'].'</a></th>
-                <th width="12%"><a href="top100.php?type='.$type.'&amp;order_by=spell_dmg_0&amp;start='.$start.'&amp;dir='.direct('spell_dmg_0').'"'.($order_by==='spell_dmg_0' ? ' class="'.$order_dir.'"' : '').'>'.$lang_top['holy'].'</a></th>
-                <th width="12%"><a href="top100.php?type='.$type.'&amp;order_by=spell_dmg_1&amp;start='.$start.'&amp;dir='.direct('spell_dmg_1').'"'.($order_by==='spell_dmg_1' ? ' class="'.$order_dir.'"' : '').'>'.$lang_top['fire'].'</a></th>
-                <th width="12%"><a href="top100.php?type='.$type.'&amp;order_by=spell_dmg_2&amp;start='.$start.'&amp;dir='.direct('spell_dmg_2').'"'.($order_by==='spell_dmg_2' ? ' class="'.$order_dir.'"' : '').'>'.$lang_top['nature'].'</a></th>
-                <th width="12%"><a href="top100.php?type='.$type.'&amp;order_by=spell_dmg_3&amp;start='.$start.'&amp;dir='.direct('spell_dmg_3').'"'.($order_by==='spell_dmg_3' ? ' class="'.$order_dir.'"' : '').'>'.$lang_top['frost'].'</a></th>
-                <th width="12%"><a href="top100.php?type='.$type.'&amp;order_by=spell_dmg_4&amp;start='.$start.'&amp;dir='.direct('spell_dmg_4').'"'.($order_by==='spell_dmg_4' ? ' class="'.$order_dir.'"' : '').'>'.$lang_top['shadow'].'</a></th>
-                <th width="12%"><a href="top100.php?type='.$type.'&amp;order_by=spell_dmg_5&amp;start='.$start.'&amp;dir='.direct('spell_dmg_5').'"'.($order_by==='spell_dmg_5' ? ' class="'.$order_dir.'"' : '').'>'.$lang_top['arcane'].'</a></th>
-                <th width="12%"><a href="top100.php?type='.$type.'&amp;order_by=spell_crit&amp;start='.$start.'&amp;dir='.direct('spell_crit').'"'.($order_by==='spell_crit' ? ' class="'.$order_dir.'"' : '').'>'.$lang_top['crit'].'</a></th>';
-  }
+
   $output .= '
               </tr>';
   $i=0;
@@ -374,19 +344,7 @@ CAST(if(if(if(if(if(@spell_crit_2<@spell_crit_1,@cmin:=@spell_crit_2,@cmin:=@spe
                 <td>'.$char['kills'].'</td>
                 <td>'.$char['arena'].'</td>';
     }
-    elseif ($type === 'spd')
-    {
-    $tmp=unpack('f', pack('L', $char['spell_crit']));
-      $output .= '
-                <td>'.$char['spell_dmg_min'].'</td>
-                <td>'.$char['spell_dmg_0'].'</td>
-                <td>'.$char['spell_dmg_1'].'</td>
-                <td>'.$char['spell_dmg_2'].'</td>
-                <td>'.$char['spell_dmg_3'].'</td>
-                <td>'.$char['spell_dmg_4'].'</td>
-                <td>'.$char['spell_dmg_5'].'</td>
-                <td>'.round($tmp[1], 2).'%</td>';
-    }
+
     $output .= '
               </tr>';
   }
@@ -408,12 +366,6 @@ CAST(if(if(if(if(if(@spell_crit_2<@spell_crit_1,@cmin:=@spell_crit_2,@cmin:=@spe
 
 }
 
-function direct($col)
-{
-	$o=(isset($_GET['order_by'])?$_GET['order_by']:'');
-	$d=(isset($_GET['dir'])?intval($_GET['dir']):0);
-	return ($col==$o?($d?0:1):1);
-}
 //#############################################################################
 // MAIN
 //#############################################################################

@@ -6,8 +6,8 @@
 
 function spell_get_name($id, &$sqlm)
 {
-  $spell_name = $sqlm->fetch_assoc($sqlm->query('SELECT field_142 FROM dbc_spell WHERE id='.$id.' LIMIT 1'));
-  return $spell_name['field_142'];
+  $spell_name = $sqlm->fetch_assoc($sqlm->query('SELECT spellname_loc0 FROM dbc_spell WHERE id='.$id.' LIMIT 1'));
+  return $spell_name['spellname_loc0'];
 }
 
 
@@ -27,7 +27,7 @@ function spell_get_icon($auraid, &$sqlm)
 
   if ($displayid)
   {
-    $result = $sqlm->query('SELECT name FROM dbc_spellicon WHERE id = '.$displayid.' LIMIT 1');
+    $result = $sqlm->query('SELECT field_1 FROM dbc_spellicon WHERE id = '.$displayid.' LIMIT 1');
 
     if($result)
     {
@@ -149,7 +149,7 @@ function spell_get_icon($auraid, &$sqlm)
     {
       if (filesize(''.$item_icons.'/'.$aura.'.jpg') > 349)
       {
-        $sqlm->query('REPLACE INTO dbc_spellicon (id, name) VALUES (\''.$displayid.'\', \''.$aura.'\')');
+        $sqlm->query('REPLACE INTO dbc_spellicon (id, field_1) VALUES (\''.$displayid.'\', \''.$aura.'\')');
         return ''.$item_icons.'/'.$aura.'.jpg';
       }
       else
