@@ -19,9 +19,9 @@ function char_main(&$sqlr, &$sqlc)
     $item_datasite, $spell_datasite , $showcountryflag;
 
     define('DATA_0', 11-CHAR_DATA_OFFSET_MAX_ENERGY-1);
-    define('DATA_1', 11+85-CHAR_DATA_OFFSET_GUILD_RANK-2);
-    define('DATA_2', 11+85+15-(CHAR_DATA_OFFSET_SPELL_CRIT+6)-3);
-    define('DATA_3', 11+85+15+88-CHAR_DATA_OFFSET_ARENA_POINTS-4);
+    define('DATA_1', 11+85-CHAR_DATA_OFFSET_GUILD_RANK-1);
+    define('DATA_2', 11+85+15-(CHAR_DATA_OFFSET_SPELL_CRIT+6)-1);
+    define('DATA_3', 11+85+15+88-CHAR_DATA_OFFSET_ARENA_POINTS-1);
 
   // this page uses wowhead tooltops
   wowhead_tt();
@@ -44,14 +44,14 @@ function char_main(&$sqlr, &$sqlc)
   }
 
   if (isset($_GET['id']) && is_numeric($_GET['id'])){
-        $sql_id = ' guid='.$sqlc->quote_smart($_GET['id']);
+        $sql_id = ' guid='.intval($_GET['id']);
   }elseif(isset($_GET['name'])){
         $sql_id = ' name="'.$sqlc->quote_smart($_GET['name']).'"';
   }else error($lang_global['empty_fields']);
 
   $result = $sqlc->query('SELECT
      guid, account, name, race, class, level, online, gender, map, zone, totaltime,
-     CONCAT_WS(",",
+     CONCAT_WS(" ",
      SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", 36 ), " ", -11),
      SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", 153 ), " ", -85),
      SUBSTRING_INDEX(SUBSTRING_INDEX(data, " ", 1013 ), " ", -15),
