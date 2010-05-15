@@ -395,5 +395,7 @@ $developer_test_mode =  false;
 
 $multi_realm_mode    =  true;
 
+define('PATH_TO_IMG', 'http://static.wowhead.com/images/wow/icons/medium/');
+define('PATH_TO_JSON', 'json');
 
 ?>

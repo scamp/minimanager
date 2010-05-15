@@ -22,7 +22,7 @@ function get_object_inf(objects_list, type)
 
     for(k in jfiles)
     {
-        $.getJSON('json/' + type + '/' + type + '_' + (jfiles[k]==0?'00':jfiles[k]) + '.json', function(data){
+        $.getJSON(path_to_json + '/' + type + '/' + type + '_' + (jfiles[k]==0?'00':jfiles[k]) + '.json', function(data){
             for(i in data)
                     if(type == 'items')
                         set_item_inf(i, data[i][0], data[i][1]);
@@ -51,61 +51,10 @@ function set_spell_inf(id, img)
 
 function item_href(img)
 {
-    return 'http://static.wowhead.com/images/icons/medium/' + img + '.jpg';
+    return path_to_image + img + '.jpg';
 }
 
 function aura_href(img)
 {
-    return 'http://static.wowhead.com/images/icons/medium/' + img + '.jpg';
+    return path_to_image + img + '.jpg';
 }
-
-/*
-function AJAXQuery()
-{
- this.constructor();
-}
-
-(
-    function()
-    {
-        var req = null;
-        AJAXQuery.prototype = {
-            ////////////////////
-            constructor: function(){
-                if (window.XMLHttpRequest)
-                  {
-                      try {req = new XMLHttpRequest()} catch(e) {}
-                  }
-                  else if (window.ActiveXObject)
-                  {
-                    try
-                    {
-                      req = new ActiveXObject("Microsoft.XMLHTTP")
-                    }
-                    catch(e)
-                    {}
-                    if (!req)
-                      try
-                      {
-                        req = new ActiveXObject("Msxml2.XMLHTTP")
-                      }
-                      catch (e)
-                      {}
-                  }
-            },
-            getData: function(href){
-                req.open('GET', href, false);
-                req.send(null);
-                while(req.readyState < 4);
-                return req.responseText;
-            },
-            getJSON: function(href){
-                return eval(this.getData(href));
-            }
-            //////////////////
-        }
-
-    }
-)();
-
-*/

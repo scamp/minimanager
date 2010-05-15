@@ -2,16 +2,26 @@
 ///////////////////////////////////////
 define('ITEMS_PER_FILE', 50);
 ///////////////////////////////////////
-define('DEFAULT_PATH', 'json');
+define('JSON_PATH', 'json');
 define('DB_MANGOS', 'mangos');
 define('DB_MANAGER', 'wmanager_16');
-define('DB_USER', 'mangos');
-define('DB_PASS', 'mangos');
-define('DB_HOST', 'localhost');
+$help = "php {$argv[0]} [spells | items] [mysql_host] mysql_user mysql_pass\n  spells/items - get spells/items inf from db\n";
 ///////////////////////////////////////
+if(isset($argv[4]) && strlen($argv[4]) > 0){
+    $db_host = $argv[2];
+    $db_user = $argv[3];
+    $db_pass = $argv[4];
+}else{
+    $db_host = 'localhost';
+    $db_user = $argv[2];
+    $db_pass = $argv[3];
+}
+if(!$argv[1] || !$argv[3] || !$db_host)
+    die($help);
 
-$mangos_db = mysql_connect(DB_HOST, DB_USER, DB_PASS);
-$path = (empty($argv[2]) || $argv[2] == '')?DEFAULT_PATH:$argv[2];
+$mangos_db = mysql_connect($db_host, $db_user, $db_pass) or die($help);
+
+
 
 switch($argv[1]){
 
@@ -28,7 +38,7 @@ case 'spells':
             while($sql2 = mysql_fetch_array($sql))
                 $res[$sql2[0]] = substr($sql2[1], 16);
                 
-                    $f = fopen($path.'/spells/items_'.($i==1?'00':($i-1)).'.json', 'w');
+                    $f = fopen(JSON_PATH.'/spells/items_'.($i==1?'00':($i-1)).'.json', 'w');
                     fwrite($f, json_encode($res));
                     fclose($f);
                     if(($i-1) % (ITEMS_PER_FILE*50) == 0 && $i>1)
@@ -55,7 +65,7 @@ case 'items':
 
             }
 
-                    $f = fopen($path.'/items/items_'.($i==1?'00':($i-1)).'.json', 'w');
+                    $f = fopen(JSON_PATH.'/items/items_'.($i==1?'00':($i-1)).'.json', 'w');
                     fwrite($f, json_encode($res));
                     fclose($f);
                     if(($i-1) % (ITEMS_PER_FILE*50) == 0 && $i>1)
@@ -65,7 +75,7 @@ case 'items':
     bar(0, 0);
     break;
     default:
-        echo "php {$argv[0]} [spells | items] [path]\n     spells/items - get spells/items inf from db\n	path - path to json directory(default: json/)\n";
+        echo $help;
 }
 
 mysql_close($mangos_db);
