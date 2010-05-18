@@ -75,6 +75,7 @@ function char_rep(&$sqlr, &$sqlc)
       $output .= '
                   <li id="selected"><a href="char_rep.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['reputation'].'</a></li>
                   <li><a href="char_skill.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['skills'].'</a></li>
+                  <li><a href="char_ateams.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['arena_teams'].'</a></li>
                 </ul>
               </div>
               <div id="tab_content2">

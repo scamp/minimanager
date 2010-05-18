@@ -51,6 +51,7 @@ function char_quest(&$sqlr, &$sqlc)
   $dir = (isset($_GET['dir'])) ? intval($_GET['dir']) : 1;
 
   $order_dir = ($dir) ? "DESC" : "ASC";
+  $type = (isset($_GET['class'])?QUEST_TYPE_CLASS:(isset($_GET['race'])?QUEST_TYPE_RACE:''));
   //==========================$_GET and SECURE end=============================
 
   $result = $sqlc->query('SELECT account, name, race, class, level, gender
@@ -292,12 +293,13 @@ function char_quest(&$sqlr, &$sqlc)
 
 function remove_quest(&$sqlc, $id, $quest_id)
 {
-    global $user_lvl;
+    global $user_lvl, $user_name;
     $quest_id = intval($quest_id);
 
-    if($user_lvl >= 2 & $quest_id > 0)
+    if($user_lvl >= 2 & $quest_id > 0){
         $sqlc->query('DELETE FROM character_queststatus WHERE quest = '.$quest_id.' AND guid = '.intval($id));
-
+        add_to_log($user_name.' remove quest (id:'.$quest_id.'), character guid:'.$id);
+    }
 }
 //########################################################################################################################
 // MAIN
