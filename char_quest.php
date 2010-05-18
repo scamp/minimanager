@@ -5,6 +5,15 @@ require_once 'header.php';
 require_once 'libs/char_lib.php';
 valid_login($action_permission['read']);
 
+define('QUEST_STATUS_NONE', 0);         //Quest isn't shown in quest list; default
+define('QUEST_STATUS_COMPLETE', 1);     //Quest has been completed
+define('QUEST_STATUS_UNAVAILABLE', 2);  //Quest is unavailable to the character
+define('QUEST_STATUS_INCOMPLETE', 3);   //Quest is active in quest log but incomplete
+define('QUEST_STATUS_AVAILABLE', 4);    //Quest is available to be taken by character
+define('QUEST_TYPE_ALL', '');
+define('QUEST_TYPE_CLASS', '&amp;class');
+define('QUEST_TYPE_RACE', '&amp;race');
+
 //########################################################################################################################
 // SHOW CHARACTERS QUESTS
 //########################################################################################################################
@@ -39,11 +48,9 @@ function char_quest(&$sqlr, &$sqlc)
   $order_by = (isset($_GET['order_by'])) ? $sqlc->quote_smart($_GET['order_by']) : 1;
   if (is_numeric($order_by)); else $order_by=1;
 
-  $dir = (isset($_GET['dir'])) ? $sqlc->quote_smart($_GET['dir']) : 0;
-  if (preg_match('/^[01]{1}$/', $dir)); else $dir=0;
+  $dir = (isset($_GET['dir'])) ? intval($_GET['dir']) : 1;
 
-  $order_dir = ($dir) ? 'ASC' : 'DESC';
-  $dir = ($dir) ? 0 : 1;
+  $order_dir = ($dir) ? "DESC" : "ASC";
   //==========================$_GET and SECURE end=============================
 
   $result = $sqlc->query('SELECT account, name, race, class, level, gender
@@ -58,7 +65,10 @@ function char_quest(&$sqlr, &$sqlc)
     $owner_gmlvl = $sqlr->result($result, 0, 'gmlevel');
     $owner_name = $sqlr->result($result, 0, 'username');
 
-    if (($user_lvl > $owner_gmlvl)||($owner_name === $user_name))
+    if(isset($_GET['remove']) && (int)$_GET['remove'] > 0)
+         remove_quest($sqlc, $id, (int)$_GET['remove']);
+
+    if (($user_lvl > $owner_gmlvl)||($owner_name === $user_name)||$user_lvl>=2)
     {
       $output .= '
           <center>
@@ -71,9 +81,20 @@ function char_quest(&$sqlr, &$sqlc)
                 <li id="selected"><a href="char_quest.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['quests'].'</a></li>
                 <li><a href="char_friends.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['friends'].'</a></li>
               </ul>
-            </div>
-            <div id="tab_content">
-              <font class="bold">
+            </div>';
+      if($user_lvl >= 2)
+          $output .= '<div id="tab_content">
+                  <div id="tab">
+                    <ul>
+                      <li '.(!$type == QUEST_TYPE_CLASS?'id="selected"':'').'><a href="char_quest.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['quests'].'</a></li>
+                      <li '.($type == QUEST_TYPE_CLASS?'id="selected"':'').'><a href="char_quest.php?id='.$id.'&amp;class&amp;realm='.$realmid.'">Class '.$lang_char['quests'].'</a></li>
+                      <li '.($type == QUEST_TYPE_RACE?'id="selected"':'').'><a href="char_quest.php?id='.$id.'&amp;race&amp;realm='.$realmid.'">Race '.$lang_char['quests'].'</a></li>
+                    </ul>
+                  </div>
+              <div id="tab_content2">';
+      else
+          $output .= '<div id="tab_content">';
+      $output .= '<font class="bold">
                 '.$char['name'].' -
                 <img src="img/c_icons/'.$char['race'].'-'.$char['gender'].'.gif"
                   onmousemove="toolTip(\''.char_get_race_name($char['race']).'\', \'item_tooltip\')" onmouseout="toolTip()" alt="" />
@@ -86,9 +107,38 @@ function char_quest(&$sqlr, &$sqlc)
                   <th width="10%"><a href="char_quest.php?id='.$id.'&amp;realm='.$realmid.'&amp;start='.$start.'&amp;order_by=0&amp;dir='.$dir.'"'.($order_by == 0 ? ' class="'.$order_dir.'"' : '').'>'.$lang_char['quest_id'].'</a></th>
                   <th width="7%"><a href="char_quest.php?id='.$id.'&amp;realm='.$realmid.'&amp;start='.$start.'&amp;order_by=1&amp;dir='.$dir.'"'.($order_by == 1 ? ' class="'.$order_dir.'"' : '').'>'.$lang_char['quest_level'].'</a></th>
                   <th width="78%"><a href="char_quest.php?id='.$id.'&amp;realm='.$realmid.'&amp;start='.$start.'&amp;order_by=2&amp;dir='.$dir.'"'.($order_by == 2 ? ' class="'.$order_dir.'"' : '').'>'.$lang_char['quest_title'].'</a></th>
-                  <th width="5%"><img src="img/aff_qst.png" width="14" height="14" border="0" alt="" /></th>
-                </tr>';
-      $result = $sqlc->query('SELECT quest, status, rewarded FROM character_queststatus WHERE guid = '.$id.' AND ( status = 3 OR status = 1 ) ORDER BY status DESC');
+                  <th width="5%"><img src="img/aff_qst.png" width="14" height="14" border="0" alt="" /></th>';
+      if($user_lvl >= 2)
+        $output .= '<th width="5%"><img src="img/aff_cross.png" width="14" height="14" border="0" alt="" /></th>';
+      $output .= '</tr>';
+      if($user_lvl >= 2 && $type == QUEST_TYPE_CLASS){
+        $sqlw = new SQL;
+        $sqlw->connect($world_db[$realmid]['addr'], $world_db[$realmid]['user'], $world_db[$realmid]['pass'], $world_db[$realmid]['name']);
+        $class_quests = $sqlw->query('SELECT entry FROM quest_template WHERE SkillOrClass = -'.$char['class']);
+        $class_quest_list = array();
+        if($sqlw->num_rows($class_quests))
+            while($ql = $sqlw->fetch_assoc($class_quests))
+                    array_push($class_quest_list, $ql['entry']);
+        else
+            $class_quest_list[0] = 0;
+
+        $result = $sqlc->query('SELECT quest, status, rewarded FROM character_queststatus WHERE guid = '.$id.' AND quest IN ('.join(',',$class_quest_list).') ORDER BY status DESC');
+
+      }elseif($user_lvl >= 2 && $type == QUEST_TYPE_RACE){
+        $sqlw = new SQL;
+        $sqlw->connect($world_db[$realmid]['addr'], $world_db[$realmid]['user'], $world_db[$realmid]['pass'], $world_db[$realmid]['name']);
+        $class_quests = $sqlw->query('SELECT entry FROM quest_template WHERE RequiredRaces = '.pow(2, $char['race']-1));
+        $class_quest_list = array();
+        if($sqlw->num_rows($class_quests))
+            while($ql = $sqlw->fetch_assoc($class_quests))
+                    array_push($class_quest_list, $ql['entry']);
+        else
+            $class_quest_list[0] = 0;
+
+        $result = $sqlc->query('SELECT quest, status, rewarded FROM character_queststatus WHERE guid = '.$id.' AND quest IN ('.join(',',$class_quest_list).') ORDER BY status DESC');
+
+      }else
+        $result = $sqlc->query('SELECT quest, status, rewarded FROM character_queststatus WHERE guid = '.$id.' AND ( status = '.QUEST_STATUS_COMPLETE.' OR status = '.QUEST_STATUS_INCOMPLETE.' ) ORDER BY status DESC');
 
       $quests_1 = array();
       $quests_3 = array();
@@ -100,7 +150,7 @@ function char_quest(&$sqlr, &$sqlc)
           $deplang = get_lang_id();
           $query1 = $sqlc->query('SELECT QuestLevel, IFNULL('.($deplang<>0 ? '`title_loc'.$deplang.'`' : 'NULL').', title) as Title FROM `'.$world_db[$realmid]['name'].'`.`quest_template` LEFT JOIN `'.$world_db[$realmid]['name'].'`.`locales_quest` ON `quest_template`.`entry` = `locales_quest`.`entry` WHERE `quest_template`.`entry` = \''.$quest['quest'].'\'');
           $quest_info = $sqlc->fetch_assoc($query1);
-          if(1 == $quest['status'])
+          if(QUEST_STATUS_COMPLETE == $quest['status'])
             array_push($quests_1, array($quest['quest'], $quest_info['QuestLevel'], $quest_info['Title'], $quest['rewarded']));
           else
             array_push($quests_3, array($quest['quest'], $quest_info['QuestLevel'], $quest_info['Title']));
@@ -121,8 +171,10 @@ function char_quest(&$sqlr, &$sqlc)
                   <td>'.$data[0].'</td>
                   <td>('.$data[1].')</td>
                   <td align="left"><a href="'.$quest_datasite.$data[0].'" target="_blank">'.$data[2].'</a></td>
-                  <td><img src="img/aff_qst.png" width="14" height="14" alt="" /></td>
-                </tr>';
+                  <td><img src="img/aff_qst.png" width="14" height="14" alt="" /></td>';
+          if($user_lvl >= 2)
+        $output .= '<td width="5%"><a href="char_quest.php?id='.$id.$type.'&amp;realm='.$realmid.'&amp;remove='.$data[0].'"><img src="img/aff_cross.png" width="14" height="14" border="0" alt="" /></a></td>';
+          $output .= '</tr>';
         }
         unset($quest_3);
         if(count($quests_1))
@@ -143,8 +195,10 @@ function char_quest(&$sqlr, &$sqlc)
                   <th width="7%"><a href="char_quest.php?id='.$id.'&amp;realm='.$realmid.'&amp;start='.$start.'&amp;order_by=1&amp;dir='.$dir.'"'.($order_by == 1 ? ' class="'.$order_dir.'"' : '').'>'.$lang_char['quest_level'].'</a></th>
                   <th width="68%"><a href="char_quest.php?id='.$id.'&amp;realm='.$realmid.'&amp;start='.$start.'&amp;order_by=2&amp;dir='.$dir.'"'.($order_by == 2 ? ' class="'.$order_dir.'"' : '').'>'.$lang_char['quest_title'].'</a></th>
                   <th width="10%"><a href="char_quest.php?id='.$id.'&amp;realm='.$realmid.'&amp;start='.$start.'&amp;order_by=3&amp;dir='.$dir.'"'.($order_by == 3 ? ' class="'.$order_dir.'"' : '').'>'.$lang_char['rewarded'].'</a></th>
-                  <th width="5%"><img src="img/aff_tick.png" width="14" height="14" border="0" alt="" /></th>
-                </tr>';
+                  <th width="5%"><img src="img/aff_tick.png" width="14" height="14" border="0" alt="" /></th>';
+          if($user_lvl >= 2)
+        $output .= '<th width="5%"><img src="img/aff_cross.png" width="14" height="14" border="0" alt="" /></th>';
+          $output .= '</tr>';
           $i = 0;
           foreach ($quests_1 as $data)
           {
@@ -156,8 +210,10 @@ function char_quest(&$sqlr, &$sqlc)
                   <td>('.$data[1].')</td>
                   <td align="left"><a href="'.$quest_datasite.$data[0].'" target="_blank">'.$data[2].'</a></td>
                   <td><img src="img/aff_'.($data[3] ? 'tick' : 'qst' ).'.png" width="14" height="14" alt="" /></td>
-                  <td><img src="img/aff_tick.png" width="14" height="14" alt="" /></td>
-                </tr>';
+                  <td><img src="img/aff_tick.png" width="14" height="14" alt="" /></td>';
+          if($user_lvl >= 2)
+        $output .= '<td width="5%"><a href="char_quest.php?id='.$id.$type.'&amp;realm='.$realmid.'&amp;remove='.$data[0].'"><img src="img/aff_cross.png" width="14" height="14" border="0" alt="" /></a></td>';
+          $output .= '</tr>';
             }
             $i++;
           }
@@ -165,7 +221,7 @@ function char_quest(&$sqlr, &$sqlc)
           unset($quest_1);
           $output .= '
                 <tr align="right">
-                  <td colspan="5">';
+                  <td colspan="'.($user_lvl >= 2?6:5).'">';
           $output .= generate_pagination('char_quest.php?id='.$id.'&amp;realm='.$realmid.'&amp;start='.$start.'&amp;order_by='.$order_by.'&amp;dir='.($dir ? 0 : 1), $all_record, $itemperpage, $start);
           $output .= '
                   </td>
@@ -175,7 +231,7 @@ function char_quest(&$sqlr, &$sqlc)
       else
         $output .= '
                 <tr>
-                  <td colspan="4"><p>'.$lang_char['no_act_quests'].'</p></td>
+                  <td colspan="'.($user_lvl >= 2?5:4).'"><p>'.$lang_char['no_act_quests'].'</p></td>
                 </tr>';
       //---------------Page Specific Data Ends here----------------------------
       //---------------Character Tabs Footer-----------------------------------
@@ -234,7 +290,15 @@ function char_quest(&$sqlr, &$sqlc)
 
 }
 
+function remove_quest(&$sqlc, $id, $quest_id)
+{
+    global $user_lvl;
+    $quest_id = intval($quest_id);
 
+    if($user_lvl >= 2 & $quest_id > 0)
+        $sqlc->query('DELETE FROM character_queststatus WHERE quest = '.$quest_id.' AND guid = '.intval($id));
+
+}
 //########################################################################################################################
 // MAIN
 //########################################################################################################################

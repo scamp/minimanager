@@ -6,7 +6,7 @@ require_once 'libs/char_lib.php';
 //require_once 'libs/item_lib.php';
 //require_once 'libs/spell_lib.php';
 require_once 'libs/map_zone_lib.php';
-//valid_login($action_permission['read']);
+valid_login($action_permission['read']);
 
 //########################################################################################################################
 // SHOW GENERAL CHARACTERS INFO
@@ -172,7 +172,7 @@ function char_main(&$sqlr, &$sqlc)
               <ul>
                 <li id="selected"><a href="char.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['char_sheet'].'</a></li>';
 
-      if (($user_lvl > $owner_gmlvl)||($owner_name === $user_name))
+      if (($user_lvl > $owner_gmlvl)||($owner_name === $user_name)||$user_lvl==3)
       {
         $output .= '
                 <li><a href="char_inv.php?id='.$id.'&amp;realm='.$realmid.'">'.$lang_char['inventory'].'</a></li>
