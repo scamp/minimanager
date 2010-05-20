@@ -963,48 +963,44 @@ function edit_user()
                 <td>'.$lang_user['last_ip'].'</td>';
   if($user_lvl >= $action_permission['update'])
     $output .= '
-                <td><a href="user.php?search_value='.$data['last_ip'].'&search_by=last_ip">'.$data['last_ip'].'</a><a href="banned.php?action=do_add_entry&amp;entry='.$data['last_ip'].'&amp;bantime=3600&amp;ban_type=ip_banned"> &lt;- '.$lang_user['ban_this_ip'].'</a></td>';
+                <td><a href="user.php?search_value='.$data['last_ip'].'&search_by=last_ip">'.$data['last_ip'].'</a><a href="banned.php?action=do_add_entry&amp;entry='.$data['last_ip'].'&amp;bantime=3600&amp;ban_type=ip_banned"> &lt;- '.$lang_user['ban_this_ip'].'</a></td></tr>';
   else
     $output .= "
-                <td>***.***.***.***</td>";
-  $output .= "
-              </tr>
-              <tr>
-                <td>{$lang_user['banned']}</td>";
+                <td>***.***.***.***</td></tr>";
+
   $que = $sqlr->query("SELECT FROM_UNIXTIME(bandate), FROM_UNIXTIME(unbandate), bannedby, banreason FROM account_banned WHERE id = $id");
-  if ($sqlr->num_rows($que))
+  $bans_count = $sqlr->num_rows($que);
+  if ($bans_count)
   {
+    $output .= "<tr>
+                <td>{$lang_user['banned']}</td>";
+
     $banned = $sqlr->fetch_row($que);
     $ban_info = " From:".$banned[0]." till:".$banned[1]."<br />by $banned[2]";
     $ban_checked = " checked=\"checked\"";
-  }
-  else
-  {
-    $ban_checked = "";
-    $ban_info    = "";
-    $banned[3]   = "";
-  }
-  if($user_lvl >= $action_permission['update'])
-    $output .= "
-                <td><input type=\"checkbox\" name=\"banned\" value=\"1\" $ban_checked/>$ban_info</td>";
-  else
-    $output .= "
-                <td>$ban_info</td>";
-  $output .="
-              </tr>
-              <tr>
+
+      if($user_lvl >= $action_permission['update'])
+        $output .= "
+                    <td><input type=\"checkbox\" name=\"banned\" value=\"1\" $ban_checked/>$ban_info</td></tr>";
+      else
+        $output .= "
+                    <td>$ban_info</td></tr>";
+        $output .="<tr>
                 <td>{$lang_user['banned_reason']}</td>";
-  if($user_lvl >= $action_permission['update'])
-    $output .="
-                <td><input type=\"text\" name=\"banreason\" size=\"42\" maxlength=\"255\" value=\"$banned[3]\" /></td>";
-  else
-    $output .= "
-                <td>$banned[3]</td>";
+
+      if($user_lvl >= $action_permission['update'])
+        $output .="
+                    <td><input type=\"text\" name=\"banreason\" size=\"42\" maxlength=\"255\" value=\"$banned[3]\" /></td></tr>";
+      else
+        $output .= "
+                    <td>$banned[3]</td></tr>";
+      $output .= "<tr><td>Number of bans</td><td><a href=\"banned.php?ban_type=account_banned&id={$id}\">{$bans_count}</a></td></tr>";
+  }
+
+
   if ($expansion_select)
   {
-    $output .="
-              </tr>
-              <tr>";
+    $output .="<tr>";
     if($user_lvl >= $action_permission['update'])
     {
       $output .="

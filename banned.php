@@ -28,13 +28,26 @@ function show_list()
   $dir = (isset($_GET['dir'])) ? intval($_GET['dir']) : 1;
 
   $order_dir = ($dir) ? "DESC" : "ASC";
-
+ 
+  if($ban_type == 'account_banned' && isset($_GET['id'])){
+      $search = (int)$_GET['id'];
+      $where = ' WHERE id = '.$search;
+  }elseif($ban_type == 'account_banned' && isset($_GET['name'])){
+      $search = $sqlr->quote_smart($_GET['name']);
+      $where = ' WHERE id in(SELECT id FROM account WHERE username LIKE "'.eregi_replace("[*]", '%', $search).'%")';
+  }elseif($ban_type == 'ip_banned' && isset($_GET['ip'])){
+      $search = $sqlr->quote_smart($_GET['ip']);
+      $where = ' WHERE ip LIKE "'.eregi_replace("[*]", '%', $search).'%"';
+  }else{
+      $search = '';
+      $where = '';
+      }
   //==========================$_GET and SECURE end=============================
 
   $query_1 = $sqlr->query("SELECT count(*) FROM $ban_type");
   $all_record = $sqlr->result($query_1,0);
 
-  $result = $sqlr->query("SELECT $key_field, FROM_UNIXTIME(bandate), FROM_UNIXTIME(unbandate), bannedby, SUBSTRING_INDEX(banreason,' ',3) FROM $ban_type ORDER BY $order_by $order_dir LIMIT $start, $itemperpage");
+  $result = $sqlr->query("SELECT $key_field, FROM_UNIXTIME(bandate), FROM_UNIXTIME(unbandate), bannedby, SUBSTRING_INDEX(banreason,' ',3) FROM $ban_type $where ORDER BY $order_by $order_dir LIMIT $start, $itemperpage");
   $this_page = $sqlr->num_rows($result);
 
   $output .= "
@@ -48,7 +61,11 @@ function show_list()
     makebutton($lang_banned['banned_ips'], "banned.php?ban_type=ip_banned",130);
   else makebutton($lang_banned['banned_accounts'], "banned.php?ban_type=account_banned",130);
   makebutton($lang_global['back'], "javascript:window.history.back()\" type=\"def",130);
-  $output .= "
+  $output .= "<form method=\"get\" action=\"banned.php\">
+               <input type=\"hidden\" name=\"ban_type\" value=\"{$ban_type}\">
+                <input type=\"text\" style=\"width: 130px;height:20px;\" name=\"".($ban_type == 'account_banned'?'name':'ip')."\" value=\"{$search}\">
+                <input type=\"submit\" style=\"width: 100px;\" value=\"{$lang_global['search']}\">
+                </form>
               </td>
               <td align=\"right\">".generate_pagination("banned.php?action=show_list&amp;order_by=$order_by&amp;ban_type=$ban_type&amp;dir=".!$dir, $all_record, $itemperpage, $start)."</td>
             </tr>
