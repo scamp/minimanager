@@ -3,8 +3,6 @@
 
 require_once 'header.php';
 require_once 'libs/char_lib.php';
-//require_once 'libs/item_lib.php';
-//require_once 'libs/spell_lib.php';
 require_once 'libs/map_zone_lib.php';
 valid_login($action_permission['read']);
 

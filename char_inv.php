@@ -4,7 +4,6 @@
 // page header, and any additional required libraries
 require_once 'header.php';
 require_once 'libs/char_lib.php';
-require_once 'libs/item_lib.php';
 // minimum permission to view page
 valid_login($action_permission['read']);
 
@@ -103,6 +102,8 @@ function char_inv(&$sqlr, &$sqlc)
       $equiped_bag_id = array(0,0,0,0,0);
       // this is where we will put items that are in bank bangs, 7 arrays, 1 for each
       $equip_bnk_bag_id = array(0,0,0,0,0,0,0,0);
+      // list of items id
+      $items_list = array();
 
       $sqlw = new SQL;
       $sqlw->connect($world_db[$realmid]['addr'], $world_db[$realmid]['user'], $world_db[$realmid]['pass'], $world_db[$realmid]['name']);
@@ -118,16 +119,21 @@ function char_inv(&$sqlr, &$sqlc)
             $equiped_bag_id[$slot['slot']-18] = array($slot['item_template'],
               $sqlw->result($sqlw->query('SELECT ContainerSlots FROM item_template
                 WHERE entry = '.$slot['item_template'].''), 0, 'ContainerSlots'), $slot['stack_count']);
+            add_item_to_list(&$items_list, $slot['item_template']);
           }
           elseif($slot['slot'] < 39) // SLOT 23 TO 38 (BackPack)
           {
             if(isset($bag[0][$slot['slot']-23]))
               $bag[0][$slot['slot']-23][0]++;
-            else $bag[0][$slot['slot']-23] = array($slot['item_template'],0,$slot['stack_count']);
+            else{
+                $bag[0][$slot['slot']-23] = array($slot['item_template'],0,$slot['stack_count']);
+                add_item_to_list(&$items_list, $slot['item_template']);
+                }
           }
           elseif($slot['slot'] < 67) // SLOT 39 TO 66 (Bank)
           {
             $bank[0][$slot['slot']-39] = array($slot['item_template'],0,$slot['stack_count']);
+            add_item_to_list(&$items_list, $slot['item_template']);
           }
           elseif($slot['slot'] < 74) // SLOT 67 TO 73 (Bank Bags)
           {
@@ -135,6 +141,7 @@ function char_inv(&$sqlr, &$sqlc)
             $equip_bnk_bag_id[$slot['slot']-66] = array($slot['item_template'],
               $sqlw->result($sqlw->query('SELECT ContainerSlots FROM item_template
                 WHERE entry = '.$slot['item_template'].''), 0, 'ContainerSlots'), $slot['stack_count']);
+            add_item_to_list(&$items_list, $slot['item_template']);
           }
         }
         else
@@ -144,13 +151,16 @@ function char_inv(&$sqlr, &$sqlc)
           {
             if(isset($bag[$bag_id[$slot['bag']]][$slot['slot']]))
             $bag[$bag_id[$slot['bag']]][$slot['slot']][1]++;
-            else
+            else{
               $bag[$bag_id[$slot['bag']]][$slot['slot']] = array($slot['item_template'],0,$slot['stack_count']);
+              add_item_to_list(&$items_list, $slot['item_template']);
+              }
           }
           // Bank Bags
           elseif (isset($bank_bag_id[$slot['bag']]))
           {
             $bank[$bank_bag_id[$slot['bag']]][$slot['slot']] = array($slot['item_template'],0,$slot['stack_count']);
+            add_item_to_list(&$items_list, $slot['item_template']);
           }
         }
       }
@@ -163,6 +173,7 @@ function char_inv(&$sqlr, &$sqlc)
       // we start with a lead of 10 spaces,
       //  because last line of header is an opening tag with 8 spaces
       //  keep html indent in sync, so debuging from browser source would be easy to read
+      $output .= '<script>get_object_inf("'.join(',', $items_list).'", "items");</script>';
       $output .= '
           <!-- start of char_inv.php -->
           <center>
@@ -201,7 +212,7 @@ function char_inv(&$sqlr, &$sqlc)
         {
           $output .='
                     <a style="padding:2px;" href="'.$item_datasite.$equiped_bag_id[$i][0].'" target="_blank">
-                      <img class="bag_icon" src="'.get_item_icon($equiped_bag_id[$i][0], $sqlm, $sqlw).'" alt="" />
+                      <img class="bag_icon" src="img/INV/INV_blank_32.gif" name="itm'.$equiped_bag_id[$i][0].'" alt="" />
                     </a>
                     '.$lang_item['bag'].' '.$i.'<br />
                     <font class="small">'.$equiped_bag_id[$i][1].' '.$lang_item['slots'].'</font>';
@@ -229,7 +240,7 @@ function char_inv(&$sqlr, &$sqlc)
           $output .= '
                       <div style="left:'.(($pos+$dsp)%4*42).'px;top:'.(floor(($pos+$dsp)/4)*41).'px;">
                         <a style="padding:2px;" href="'.$item_datasite.$item[0].'" target="_blank">
-                          <img src="'.get_item_icon($item[0], $sqlm, $sqlw).'" alt="" />
+                          <img src="img/INV/INV_blank_32.gif" name="itm'.$item[0].'" alt="" />
                         </a>
                         <div style="width:25px;margin:-20px 0px 0px 18px;color: black; font-size:14px">'.$item[2].'</div>
                         <div style="width:25px;margin:-21px 0px 0px 17px;font-size:14px">'.$item[2].'</div>
@@ -244,7 +255,7 @@ function char_inv(&$sqlr, &$sqlc)
                 </tr>
                 <tr>
                   <th colspan="2" align="left">
-                    <img class="bag_icon" src="'.get_item_icon(3960, $sqlm, $sqlw).'" alt="" align="middle" style="margin-left:100px;" />
+                    <img class="bag_icon" src="'.PATH_TO_IMG.'inv_misc_bag_08.jpg" alt="" align="middle" style="margin-left:100px;" />
                     <font style="margin-left:30px;">'.$lang_char['backpack'].'</font>
                   </th>
                   <th colspan="2">
@@ -262,7 +273,7 @@ function char_inv(&$sqlr, &$sqlc)
         $output .= '
                       <div style="left:'.($pos%4*42).'px;top:'.(floor($pos/4)*41).'px;">
                         <a style="padding:2px;" href="'.$item_datasite.$item[0].'" target="_blank">
-                          <img src="'.get_item_icon($item[0], $sqlm, $sqlw).'" alt="" />
+                          <img src="img/INV/INV_blank_32.gif" name="itm'.$item[0].'" alt="" />
                         </a>
                         <div style="width:25px;margin:-20px 0px 0px 18px;color: black; font-size:14px\">'.$item[2].'</div>
                         <div style="width:25px;margin:-21px 0px 0px 17px;font-size:14px">'.$item[2].'</div>
@@ -289,7 +300,7 @@ function char_inv(&$sqlr, &$sqlc)
         $output .= '
                       <div style="left:'.($pos%7*43).'px;top:'.(floor($pos/7)*41).'px;">
                         <a style="padding:2px;" href="'.$item_datasite.$item[0].'" target="_blank">
-                          <img src="'.get_item_icon($item[0], $sqlm, $sqlw).'" class="inv_icon" alt="" />
+                          <img src="img/INV/INV_blank_32.gif" name="itm'.$item[0].'" class="inv_icon" alt="" />
                         </a>
                         <div style="width:25px;margin:-20px 0px 0px 18px;color: black; font-size:14px">'.$item[2].'</div>
                         <div style="width:25px;margin:-21px 0px 0px 17px;font-size:14px">'.$item[2].'</div>
@@ -310,7 +321,7 @@ function char_inv(&$sqlr, &$sqlc)
         {
           $output .= '
                     <a style="padding:2px;" href="'.$item_datasite.$equip_bnk_bag_id[$i][0].'" target="_blank">
-                      <img class="bag_icon" src="'.get_item_icon($equip_bnk_bag_id[$i][0], $sqlm, $sqlw).'" alt="" />
+                      <img class="bag_icon" src="img/INV/INV_blank_32.gif" name="itm'.$equip_bnk_bag_id[$i][0].'" alt="" />
                     </a>
                     '.$lang_item['bag'].' '.$i.'<br />
                     <font class="small">'.$equip_bnk_bag_id[$i][1].' '.$lang_item['slots'].'</font>';
@@ -339,7 +350,7 @@ function char_inv(&$sqlr, &$sqlc)
             {
               $output .= '
                     <a style="padding:2px;" href="'.$item_datasite.$equip_bnk_bag_id[$i][0].'" target="_blank">
-                      <img class="bag_icon" src="'.get_item_icon($equip_bnk_bag_id[$i][0], $sqlm, $sqlw).'" alt="" />
+                      <img class="bag_icon" src="img/INV/INV_blank_32.gif" name="itm'.$equip_bnk_bag_id[$i][0].'" alt="" />
                     </a>
                     '.$lang_item['bag'].' '.$i.'<br />
                     <font class="small">'.$equip_bnk_bag_id[$i][1].' '.$lang_item['slots'].'</font>';
@@ -366,7 +377,7 @@ function char_inv(&$sqlr, &$sqlc)
           $output .= '
                       <div style="left:'.(($pos+$dsp)%4*43).'px;top:'.(floor(($pos+$dsp)/4)*41).'px;">
                         <a style="padding:2px;" href="'.$item_datasite.$item[0].'" target="_blank">
-                          <img src="'.get_item_icon($item[0], $sqlm, $sqlw).'" alt="" />
+                          <img src="img/INV/INV_blank_32.gif" name="itm'.$item[0].'" alt="" />
                         </a>
                         <div style="width:25px;margin:-20px 0px 0px 18px;color: black; font-size:14px">'.$item[2].'</div>
                         <div style="width:25px;margin:-21px 0px 0px 17px;font-size:14px">'.$item[2].'</div>
@@ -439,6 +450,11 @@ function char_inv(&$sqlr, &$sqlc)
 
 }
 
+function add_item_to_list($list, $id)
+{
+if(!in_array($id, $list))
+        array_push($list, (int)$id);
+}
 
 //#############################################################################
 // MAIN
