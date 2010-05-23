@@ -1885,6 +1885,7 @@ $lang_arenateam = array(
   'by_name' => 'by Team Name',
   'by_team_leader' => 'by Team Leader',
   'by_id' => 'by Team Id',
+  'by_member' => 'by Team Member',
   'id' => 'Id',
   'arenateam_id' => 'Team Id',
   'arenateam_name' => 'Team Name',
