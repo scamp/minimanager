@@ -3,7 +3,6 @@
 
 require_once("header.php");
 require_once("scripts/get_lib.php");
-require_once("libs/item_lib.php");
 valid_login($action_permission['read']);
 
 //#############################################################################
@@ -30,11 +29,9 @@ function browse_auctions(&$sqlr, &$sqlc)
   $order_by = (isset($_GET['order_by'])) ? $sqlc->quote_smart($_GET['order_by']) : "time";
   if (!preg_match("/^[_[:lower:]]{1,15}$/", $order_by)) $order_by="time";
 
-  $dir = (isset($_GET['dir'])) ? $sqlc->quote_smart($_GET['dir']) : 1;
-  if (!preg_match("/^[01]{1}$/", $dir)) $dir=1;
+  $dir = (isset($_GET['dir'])) ? intval($_GET['dir']) : 1;
 
-  $order_dir = ($dir) ? "ASC" : "DESC";
-  $dir = ($dir) ? 0 : 1;
+  $order_dir = ($dir) ? "DESC" : "ASC";
   //==========================$_GET and SECURE end=============================
 
   if( !$user_lvl && !$server[$realm_id]['both_factions'])
@@ -59,6 +56,7 @@ function browse_auctions(&$sqlr, &$sqlc)
   $search_filter = '';
   $search_class = -1;
   $search_quality = -1;
+  $items_list = array();
 
   if((isset($_GET['search_value']) && isset($_GET['search_by'])) || (isset($_GET['search_class'])) || (isset($_GET['search_quality'])) )
   {
@@ -153,13 +151,8 @@ function browse_auctions(&$sqlr, &$sqlc)
       LEFT JOIN `".$characters_db[$realm_id]['name']."`.`characters` c2 ON `c2`.`guid`=`auctionhouse`.`buyguid`
       WHERE `auctionhouse`.`itemowner`=`characters`.`guid` AND `auctionhouse`.`item_template`=`item_template`.`entry` AND `auctionhouse`.`itemguid`=`item_instance`.`guid`
       $search_filter $order_side");
-  }
-  else
-  {
-    $query_1 = $sqlc->query("SELECT count(*) FROM auctionhouse");
-  }
-
-  $result = $sqlc->query("SELECT `characters`.`name` AS `seller`, `auctionhouse`.`item_template` AS `itemid`,
+    $all_record = $sqlc->result($query_1,0);
+    $result = $sqlc->query("SELECT `characters`.`name` AS `seller`, `auctionhouse`.`item_template` AS `itemid`,
     `item_template`.`name` AS `itemname`, `auctionhouse`.`buyoutprice` AS `buyout`, `auctionhouse`.`time`-unix_timestamp(),
     `c2`.`name` AS `encherisseur`, `auctionhouse`.`lastbid`, `auctionhouse`.`startbid`,
     SUBSTRING_INDEX(SUBSTRING_INDEX(`item_instance`.`data`, ' ',15), ' ',-1) AS qty, `characters`.`race` AS seller_race,
@@ -170,9 +163,15 @@ function browse_auctions(&$sqlr, &$sqlc)
     WHERE `auctionhouse`.`itemowner`=`characters`.`guid` AND `auctionhouse`.`item_template`=`item_template`.`entry` AND `auctionhouse`.`itemguid`=`item_instance`.`guid`
     $search_filter
     $order_side ORDER BY `auctionhouse`.`$order_by` $order_dir LIMIT $start, $itemperpage");
+  }
+  else
+  {
+    $all_record = 0;
+    $result = $sqlc->query('SELECT NULL LIMIT 0');
+  }
 
-  $all_record = $sqlc->result($query_1,0);
 
+ 
   //=====================top tage navigaion starts here========================
   $output .="
         <center>
@@ -258,6 +257,7 @@ function browse_auctions(&$sqlr, &$sqlc)
 
   while ($rows = $sqlc->fetch_row($result))
   {
+    add_item_to_list(&$items_list, $rows[1]);
     $output .= "
             <tr>";
     foreach($rows as $row => $value)
@@ -281,7 +281,7 @@ function browse_auctions(&$sqlr, &$sqlc)
           $value = $g."<img src=\"./img/gold.gif\" alt=\"\" /> ".$s."<img src=\"./img/silver.gif\" alt=\"\" /> ".$c."<img src=\"./img/copper.gif\" alt=\"\" /> ";
           break;
         case 2:
-          $value = "<a href=\"$item_datasite$rows[1]\" target=\"_blank\" onmouseover=\"toolTip,'item_tooltip')\"><img src=\"".get_item_icon($rows[1], $sqlm, $sqlw)."\" class=\"".get_item_border($rows[1], $sqlw)."\" alt=\"$value\" /><br/>$value".(($rows[8]>1) ? " (x$rows[8])" : "")."</a>";
+          $value = "<a href=\"$item_datasite.$rows[1]\" target=\"_blank\" onmouseover=\"toolTip,'item_tooltip')\"><img src=\"img/INV/INV_blank_32.gif\" name=\"itm{$rows[1]}\" alt=\"$value\" /><br/>$value".(($rows[8]>1) ? " (x$rows[8])" : "")."</a>";
           break;
         case 0:
           $value = "<b>".((!empty($rows[9])) ? "<font color=".$sidecolor[$rows[9]].">".$value."</font>" : "N/A")."</b>";
@@ -311,8 +311,14 @@ function browse_auctions(&$sqlr, &$sqlc)
             </tr>
           </table>
         </center>";
+    $output .= '<script>get_object_inf("'.join(',', $items_list).'", "items");</script>';
 }
 
+function add_item_to_list($list, $id)
+{
+if(!in_array($id, $list))
+        array_push($list, (int)$id);
+}
 
 //#############################################################################
 // MAIN
